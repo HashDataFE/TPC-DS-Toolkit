@@ -122,7 +122,7 @@ export MULTI_USER_COUNT="2"  # Number of concurrent users during throughput test
 ### Storage Options  
 ```bash
 # Table format and compression options
-export TABLE_ACCESS_METHOD="ao_column"  # Available options:
+export TABLE_ACCESS_METHOD="USING ao_column"  # Available options:
                                        # - heap: Classic row storage
                                        # - ao_row: Append-optimized row storage
                                        # - ao_column: Append-optimized columnar storage
