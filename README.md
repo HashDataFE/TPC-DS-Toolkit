@@ -1,43 +1,52 @@
-# Decision Support Benchmark for HashData database.
+# Decision Support Benchmark for HashData Database
 
-This tool is based on the benchmark tool [pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
-This repo contains automation of running the DS benchmark on an existing Hashdata cluster.
+This tool automates running the TPC-DS benchmark on HashData clusters, based on [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
 
-## Context
+## Table of Contents
+- [Supported TPC-DS Versions](#supported-tpc-ds-versions)
+- [Prerequisites](#prerequisites) 
+- [Installation](#installation)
+- [Usage](#usage)
+- [Configuration](#configuration)
+- [Benchmark Modifications](#benchmark-modifications)
+- [Troubleshooting](#troubleshooting)
 
+## Supported TPC-DS Versions
 
-### Supported TPC-DS Versions
+| Version | Date | Specification |
+|---------|------|---------------|
+| 3.2.0 | 2021/06/15 | [PDF](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v3.2.0.pdf) |
+| 2.1.0 | 2015/11/12 | [PDF](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v2.1.0.pdf) |
+| 1.3.1 | 2015/02/19 | [PDF](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v1.3.1.pdf) |
 
-TPC has published the following TPC-DS standards over time:
-| TPC-DS Benchmark Version | Published Date | Standard Specification |
-|-|-|-|
-| 3.2.0 (latest) | 2021/06/15 | http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v3.2.0.pdf |
-| 2.1.0 | 2015/11/12 | http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v2.1.0.pdf |
-| 1.3.1 (earliest) | 2015/02/19 | http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v1.3.1.pdf |
+This tool uses TPC-DS 3.2.0 as of version 1.2.
 
-As of version 1.2 of this tool TPC-DS 3.2.0 is used.
+## Prerequisites
 
-## Setup
-### Prerequisites
+### Local Cluster Setup
+For running tests on the coordinator host:
 
-#### When running test inside Cloudberry cluster on the COORDINATOR host
+1. Set `RUN_MODEL="local"` in `tpcds_variables.sh`
+2. Ensure running HashData Database with `gpadmin` access
+3. Create `gpadmin` database
+4. Have `root` access on master node (`mdw`) 
+5. Configure `ssh` between `mdw` and segment nodes (`sdw1..n`)
 
-0. Set `export RUN_MODEL="local"` in `tpcds_variables.sh`
-1. A running HashData Database with `gpadmin` access
-2. `gpadmin` database is created
-3. `root` access on the master node `mdw` for installing dependencies
-4. `ssh` connections between `mdw` and the segment nodes `sdw1..n`
+### Remote Client Setup  
+For running tests from a remote client:
 
-
-#### When running test from remote client host for HashData Enterprise 4 or HashData cloud
-0. Set `export RUN_MODEL="cloud"` in `tpcds_variables.sh` 
-1. psql clinet installed with passwordless access for remote cluster (.pgpass setup properly)
-2. `gpadmin` database is created with default warehouse parameter configured. (`alter role gpadmin set warehouse=testforcloud;`)
-3. Set `export RANDOM_DISTRIBUTION="true"` and `export TABLE_STORAGE_OPTIONS="compresstype=zstd, compresslevel=5"` in `tpcds_variables.sh`
-4. Test data will be generated in /tmp/dsbenchmark on the client host by default. 
-Change the location by setting `export CLIENT_GEN_PATH="/tmp/dsbenchmark"` in `tpcds_variables.sh`. Data will be loaded with `\copy` from psql.
-
-
+1. Set `RUN_MODEL="cloud"` in `tpcds_variables.sh`
+2. Install `psql` client with passwordless access (`.pgpass`)
+3. Create `gpadmin` database with:
+   ```sql
+   ALTER ROLE gpadmin SET warehouse=testforcloud;
+   ```
+4. Configure required variables:
+   ```bash
+   export RANDOM_DISTRIBUTION="true"
+   export TABLE_STORAGE_OPTIONS="compresstype=zstd, compresslevel=5"
+   export CLIENT_GEN_PATH="/tmp/dsbenchmark" # Optional data location
+   ```
 
 All the following examples are using standard host name convention of HashData using `mdw` for master node, and `sdw1..n` for the segment nodes.
 
@@ -52,9 +61,9 @@ yum -y install gcc make byacc
 
 The original source code is from http://tpc.org/tpc_documents_current_versions/current_specifications5.asp.
 
-### Download and Install
+## Installation
 
-Just clone the repro with GIT or download source code from gitlab.
+Just clone the repo with GIT or download source code from gitlab.
 
 ```bash
 ssh gpadmin@mdw
@@ -62,15 +71,15 @@ git clone https://code.hashdata.xyz/field-engineering/TPC-DS-HashData
 ```
 Put the folder under /home/gpadmin/ and change owner to gpadmin.
 
-```
+```bash
 chown -R gpadmin.gpadmin TPC-DS-HashData
 ```
 
 ## Usage
 
-To run the benchmark, login as `gpadmin` on `mdw:
+To run the benchmark, login as `gpadmin` on `mdw`:
 
-```
+```bash
 ssh gpadmin@mdw
 cd ~/TPC-DS-HashData
 ./run.sh
@@ -79,177 +88,69 @@ cd ~/TPC-DS-HashData
 By default, it will run a scale 1 (1G) and with 1 concurrent users from data generation to score computation in the background.
 Log will be stored with name `tpcds_<time_stamp>.log` in ~/TPC-DS-HashData.
 
-### Configuration Options
+## Configuration
 
-By changing the `tpcds_variables.sh`, we can control how to run this benchmark.
+The benchmark is controlled through `tpcds_variables.sh`. Key configuration sections:
 
-
-```shell
-# Environment options
+### Environment Options
+```bash
+# Core settings
 export ADMIN_USER="gpadmin"
-export BENCH_ROLE="dsbench"
+export BENCH_ROLE="dsbench" 
 export SCHEMA_NAME="tpcds"
-export GREENPLUM_PATH=$GPHOME/greenplum_path.sh
-## Set chip type to arm or x86 to avoid compiling TPC-DS tools from source code.
-export CHIP_TYPE="x86"
- 
-## Set to "local" to run the benchmark on the COORDINATOR host or "cloud" to run the benchmark on remote cluster
-export RUN_MODEL="cloud"
+export CHIP_TYPE="x86"      # arm or x86
+export RUN_MODEL="cloud"    # local or cloud
 
-## Default port used is configed via env setting of $PGPORT for user $ADMIN_USER
-## Confige the host/port/user to connect to the cluster running the test, can left empty when running local mode with gpadmin.
-export PSQL_OPTIONS="-h 2f445c57-c838-4038-a410-50ee36f9461d.cloud.hashdata.ai -p 5432"
-
-## Follwoing variables only take effect when RUN_MODEL is set to "cloud".
-### Default path to store the generated benchmark data, 
-export CLIENT_GEN_PATH="/tmp/dsbenchmark"
-### How many parallel processes to run on the client to generate data
-export CLIENT_GEN_PARALLEL="2"
-
-# Benchmark options
-export GEN_DATA_SCALE="1"
-export MULTI_USER_COUNT="2"
-
-# Step options
-
-## step 00_compile_tpcds
-export RUN_COMPILE_TPCDS="true"
-
-## step 01_gen_data
-# To run another TPC-DS with a different BENCH_ROLE using existing tables and data
-# the queries need to be regenerated with the new role
-# change BENCH_ROLE and set RUN_GEN_DATA to true and GEN_NEW_DATA to false
-# GEN_NEW_DATA only takes affect when RUN_GEN_DATA is true, and the default setting
-# should true under normal circumstances
-export RUN_GEN_DATA="true"
-export GEN_NEW_DATA="true"
-
-## step 02_init
-export RUN_INIT="true"
-## set this to true if binary location changed
-export RESET_ENV_ON_SEGMENT='false'
-
-## step 03_ddl
-# To run another TPC-DS with a different BENCH_ROLE using existing tables and data
-# change BENCH_ROLE and set RUN_DDL to true and DROP_EXISTING_TABLES to false
-# DROP_EXISTING_TABLES only takes affect when RUN_DDL is true, and the default setting
-# should true under normal circumstances
-export RUN_DDL="true"
-export DROP_EXISTING_TABLES="true"
-
-## step 04_load
-export RUN_LOAD="true"
-
-## step 05_sql
-export RUN_SQL="true"
-export RUN_ANALYZE="true"
-export RUN_QGEN="true"
-## set wait time between each query execution
-export QUERY_INTERVAL="0"
-## Set to 1 if you want to stop when error occurs
-export ON_ERROR_STOP="0"
-
-## step 06_single_user_reports
-export RUN_SINGLE_USER_REPORTS="true"
-
-## step 07_multi_user
-export RUN_MULTI_USER="false"
-export RUN_MULTI_USER_QGEN="true"
-
-## step 08_multi_user_reports
-export RUN_MULTI_USER_REPORTS="false"
-
-## step 09_score
-export RUN_SCORE="false"
-
-# Misc options
-export SINGLE_USER_ITERATIONS="1"
-export EXPLAIN_ANALYZE="false"
-export RANDOM_DISTRIBUTION="true"
-## Set to on/off to enable vectorization
-export ENABLE_VECTORIZATION="off"
-export STATEMENT_MEM="2GB"
-export STATEMENT_MEM_MULTI_USER="1GB"
-## Set gpfdist location where gpfdist will run p (primary) or m (mirror)
-export GPFDIST_LOCATION="p"
-export OSVERSION=$(uname)
-export ADMIN_USER=$(whoami)
-export ADMIN_HOME=$(eval echo ${HOME}/${ADMIN_USER})
-export MASTER_HOST=$(hostname -s)
-export LD_PRELOAD=/lib64/libz.so.1 ps
-
-# Storage options
-## Set to ”USING PAX“ for PAX table format and remove blocksize option in TABLE_STORAGE_OPTIONS. 
-## Supported in Lightning only.
-# export TABLE_ACCESS_METHOD="USING PAX"
-## Set different storage options for each access method
-export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"
-
+# Remote cluster connection
+export PSQL_OPTIONS="-h <host> -p <port>"
+export CLIENT_GEN_PATH="/tmp/dsbenchmark"  # Location for data generation
+export CLIENT_GEN_PARALLEL="2"             # Number of parallel data generation processes
 ```
 
-`tpcds.sh` will validate existence of those variables.
+### Benchmark Options
+```bash
+# Scale and concurrency 
+export GEN_DATA_SCALE="1"    # 1 = 1GB, 1000 = 1TB, 3000 = 3TB
+export MULTI_USER_COUNT="2"  # Number of concurrent users during throughput tests
 
-#### Environment Options
-
-```shell
-# environment options
-ADMIN_USER="gpadmin"
-BENCH_ROLE="dsbench"
-SCHEMA_NAME="tpcds"
-GREENPLUM_PATH=$GPHOME/greenplum_path.sh
-CHIP_TYPE="arm"
+# For large scale tests, consider:
+# - 3TB: GEN_DATA_SCALE="3000" with MULTI_USER_COUNT="5"
+# - 10TB: GEN_DATA_SCALE="10000" with MULTI_USER_COUNT="7"
+# - 30TB: GEN_DATA_SCALE="30000" with MULTI_USER_COUNT="10"
 ```
 
-These are the setup related variables:
-- `ADMIN_USER`: default `gpadmin`.
-  It is the default database administrator account, as well as the user accessible to all `mdw` and `sdw1..n` machines.
+### Storage Options  
+```bash
+# Table format and compression options
+export TABLE_ACCESS_METHOD="ao_column"  # Available options:
+                                       # - heap: Classic row storage
+                                       # - ao_row: Append-optimized row storage
+                                       # - ao_column: Append-optimized columnar storage
+                                       # - pax: PAX storage format
 
-- `CHIP_TYPE`: default `arm` can be set to `x86`. 
-  Set this according to the CPU type of the machince running this test. If included binaries works, compiling will be skipped, otherwise, will try to compile from source code. 
-  
-  Included binaries: x86 on Centos7 and ARM on Centos7.
-
-  Note: The benchmark related files for each segment node are located in the segment's `${PGDATA}/dsbenchmark` directory.
-  If there isn't enough space in this directory in each segment, you can create a symbolic link to a drive location that does have enough space.
-
-In most cases, we just leave them to the default.
-
-#### Benchmark Options
-
-```shell
-# benchmark options
-GEN_DATA_SCALE="1"
-MULTI_USER_COUNT="2"
+export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"  # Compression settings:
+                                                                         # - zstd: Best compression ratio
+                                                                         # - compresslevel: 1-19 (higher=better compression)
 ```
 
-These are the benchmark controlling variables:
-- `GEN_DATA_SCALE`: default `1`.
-  Scale 1 is 1G.
-- `MULTI_USER_COUNT`: default `2`.
-  It's also usually referred as `CU`, i.e. concurrent user.
-  It controls how many concurrent streams to run during the throughput run.
+### Step Control Options
+```bash
+# Benchmark execution steps
+# 1. Setup and compilation
+export RUN_COMPILE_TPCDS="true"  # Compile data/query generators (one-time)
+export RUN_INIT="true"           # Initialize cluster settings
 
+# 2. Data generation and loading
+export RUN_GEN_DATA="true"       # Generate test data
+export RUN_DDL="true"            # Create database schemas/tables
+export RUN_LOAD="true"           # Load generated data
 
-If evaluating Greenplum cluster across different platforms, we recommend to change this section to 3TB with 5CU:
-```shell
-# benchmark options
-MULTI_USER_COUNT="5"
-GEN_DATA_SCALE="3000"
-```
-#### Step Options
-
-```shell
-# step options
-RUN_COMPILE_TPCDS="true"
-RUN_GEN_DATA="true"
-RUN_INIT="true"
-RUN_DDL="true"
-RUN_LOAD="true"
-RUN_SQL="true"
-RUN_SINGLE_USER_REPORT="true"
-RUN_MULTI_USER="true"
-RUN_MULTI_USER_REPORTS="true"
-RUN_SCORE="true"
+# 3. Query execution
+export RUN_SQL="true"            # Run power test queries
+export RUN_SINGLE_USER_REPORTS="true"  # Upload single user test results
+export RUN_MULTI_USER="false"    # Run throughput test queries
+export RUN_MULTI_USER_REPORTS="false"  # Upload multi-user test results
+export RUN_SCORE="false"         # Compute final benchmark score
 ```
 
 There are multiple steps running the benchmark and controlled by these variables:
@@ -296,9 +197,9 @@ If any above variable is missing or invalid, the script will abort and show the 
 
 **WARNING**: Now TPC-DS does not rely on the log folder to run or skip the steps. It will only run the steps that are specified explicitly as `true`  in the `tpcds_variables.sh`. If any necessary step is speficied as `false` but has never been executed before, the script will abort when it tries to access something that does not exist in the database or under the directory.
 
-#### Miscellaneous Options
+### Miscellaneous Options
 
-```shell
+```bash
 # Misc options
 export SINGLE_USER_ITERATIONS="1"
 export EXPLAIN_ANALYZE="false"
@@ -331,35 +232,7 @@ These are miscellaneous controlling variables:
 - `ENABLE_VECTORIZATION`: set to true to enable vectorization computing for better performance. Feature is suppported as of Lightning 1.5.3. Default is false. Only works for AO with column and PAX table type.
  
 
-### Storage Options
-```shell
-# Storage options
-## Set to heap/ao_row/ao_column/pax for different table format
-export TABLE_ACCESS_METHOD="ao_column"
-## Set different storage options for each access method
-export TABLE_STORAGE_OPTIONS="appendoptimized=true compresstype=zstd, compresslevel=5, blocksize=1048576"
-```
-
-- `TABLE_ACCESS_METHOD`: define the table type for the test, available options are HEAP, AO with row, AO with column and PAX (supported as of Lightning 1.5.3).  
-- `TABLE_STORAGE_OPTIONS`: more storage configurations could be defiend, options are different for each table type, refer to docuemntation for more detail.
-
-Table distribution keys are defined in `../03_ddl/distribution.txt`, you can modify tables' distribution keys by changing this file. You can set the distribution method to hash with colunm names or "REPLICATED".
-
-### Execution
-
-Running the benchmark as a background process:
-
-```bash
-sh run.sh
-```
-
-### Play with different options
-- Change different storage options in `functions.sh` to try with different compress options and whether use AO/CO storage.
-- Replace some of the tables' DDL with the `*.sql.partition` files in folder `03_ddl` to use partition for some of the non-dimension tables. No partition is used by default.
-- Steps `RUN_COMPILE_TPCDS` and `RUN_GEN_DATA` only need to be executed once. 
-
-
-## Benchmark Minor Modifications
+## Benchmark Modifications
 
 ### 1. Change to SQL queries that subtracted or added days were modified slightly:
 
@@ -474,3 +347,40 @@ This was done on queries: 2, 14, and 23.
 For the larger tests (e.g. 15TB), a few of the TPC-DS queries can output a very large number of rows which are just discarded.
 
 This was done on queries: 64, 34, and 71.
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+1. **Missing or Invalid Environment Variables**  
+   Ensure all required environment variables in `tpcds_variables.sh` are set correctly. If any variable is missing or invalid, the script will abort and display the problematic variable name. Double-check the following key variables:
+   - `RUN_MODEL`
+   - `GEN_DATA_SCALE`
+   - `TABLE_ACCESS_METHOD`
+   - `PSQL_OPTIONS`
+
+2. **Permission Errors**  
+   If you encounter permission errors during installation or execution:
+   - Verify that the `TPC-DS-HashData` folder is owned by `gpadmin`:
+     ```bash
+     chown -R gpadmin.gpadmin /home/gpadmin/TPC-DS-HashData
+     ```
+   - Ensure `gpadmin` has the necessary access to the database and directories.
+
+3. **Data Generation Fails**  
+   If data generation fails:
+   - Confirm that `dsdgen` is compiled successfully.
+   - Check the `CLIENT_GEN_PATH` variable to ensure it points to a valid directory.
+
+4. **Query Execution Errors**  
+   If queries fail to execute:
+   - Verify that all required tables and schemas are created by ensuring `RUN_DDL` is set to `true` during the initial run.
+   - Check for syntax errors in modified queries.
+
+5. **Performance Issues**  
+   For performance-related concerns:
+   - Adjust `STATEMENT_MEM` and `STATEMENT_MEM_MULTI_USER` based on the available system memory.
+   - Enable vectorization by setting `ENABLE_VECTORIZATION="on"` if supported.
+
+### Additional Resources
+For further assistance, refer to the [TPC-DS Specification](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v3.2.0.pdf) or contact the HashData support team.
