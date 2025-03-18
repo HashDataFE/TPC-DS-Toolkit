@@ -93,7 +93,7 @@ export LD_PRELOAD=/lib64/libz.so.1 ps
 
 # Storage options
 ## Support TABLE_ACCESS_METHOD to ao_row / ao_column / heap in both GPDB 7 / CBDB
-## Support TABLE_ACCESS_METHOD to ”USING PAX“ for PAX table format and remove blocksize option in TABLE_STORAGE_OPTIONS for CBDB 2.0 only.
+## Support TABLE_ACCESS_METHOD to ”PAX“ for PAX table format and remove blocksize option in TABLE_STORAGE_OPTIONS for CBDB 2.0 only.
 ## DO NOT set TABLE_ACCESS_METHOD for Cloud
 # export TABLE_ACCESS_METHOD="USING PAX"
 ## Set different storage options for each access method
