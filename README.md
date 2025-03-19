@@ -1,15 +1,46 @@
 # Decision Support Benchmark for HashData Database
 
-This tool automates running the TPC-DS benchmark on HashData clusters, based on [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
+[![TPC-DS](https://img.shields.io/badge/TPC--DS-v3.2.0-blue)](http://www.tpc.org/tpcds/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
+
+A comprehensive tool for running TPC-DS benchmarks on HashData clusters, forked from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
+
+## Overview
+
+This tool provides:
+- Automated TPC-DS benchmark execution
+- Support for both local and cloud deployments
+- Configurable data generation (1GB to 100TB)
+- Customizable query execution parameters
+- Detailed performance reporting
 
 ## Table of Contents
+- [Quick Start](#quick-start)
 - [Supported TPC-DS Versions](#supported-tpc-ds-versions)
 - [Prerequisites](#prerequisites) 
 - [Installation](#installation)
 - [Usage](#usage)
 - [Configuration](#configuration)
+- [Performance Tuning](#performance-tuning)
 - [Benchmark Modifications](#benchmark-modifications)
 - [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Quick Start
+
+```bash
+# 1. Clone the repository
+git clone git@github.com:HashDataFE/TPC-DS-CBDB.git
+cd TPC-DS-CBDB
+
+# 2. Configure your environment
+cp tpcds_variables.sh.template tpcds_variables.sh
+vim tpcds_variables.sh
+
+# 3. Run the benchmark
+./run.sh
+```
 
 ## Supported TPC-DS Versions
 
@@ -230,7 +261,34 @@ These are miscellaneous controlling variables:
 - `STATEMENT_MEM`: default 2GB which set the `statement_mem` parameter for each statement of single user test. Set with `GB` or `MB`. STATEMENT_MEM should be less than gp_vmem_protect_limit.
 - `STATEMENT_MEM_MULTI_USER`: default 1GB which set the `statement_mem` parameter for each statement of multiple user test. Set with `GB` or `MB`. Please note that, `STATEMENT_MEM_MULTI_USER` * `MULTI_USER_COUNT` should be less than `gp_vmem_protect_limit`.
 - `ENABLE_VECTORIZATION`: set to true to enable vectorization computing for better performance. Feature is suppported as of Lightning 1.5.3. Default is false. Only works for AO with column and PAX table type.
- 
+
+## Performance Tuning
+
+For optimal performance:
+
+1. **Memory Settings**
+   ```bash
+   # Recommended for 100GB+ RAM systems
+   export STATEMENT_MEM="8GB"
+   export STATEMENT_MEM_MULTI_USER="4GB"
+   ```
+
+2. **Storage Optimization**
+   ```bash
+   # For best compression ratio
+   export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=9)"
+   
+   # For best performance
+   export TABLE_ACCESS_METHOD="USING pax"
+   export ENABLE_VECTORIZATION="on"
+   ```
+
+3. **Concurrency Tuning**
+   ```bash
+   # Adjust based on available CPU cores
+   export CLIENT_GEN_PARALLEL="$(nproc)"
+   export MULTI_USER_COUNT="$(( $(nproc) / 2 ))"
+   ```
 
 ## Benchmark Modifications
 
@@ -384,3 +442,15 @@ This was done on queries: 64, 34, and 71.
 
 ### Additional Resources
 For further assistance, refer to the [TPC-DS Specification](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v3.2.0.pdf) or contact the HashData support team.
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
