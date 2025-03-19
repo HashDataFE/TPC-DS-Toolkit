@@ -8,7 +8,10 @@ FUNCTIONS_FILE="functions.sh"
 source ./${VARS_FILE}
 # shellcheck source=functions.sh
 source ./${FUNCTIONS_FILE}
-source_bashrc
+
+if [ "${RUN_MODEL}" != "cloud" ]; then
+  source_bashrc
+fi
 
 TPC_DS_DIR=$(get_pwd ${BASH_SOURCE[0]})
 export TPC_DS_DIR
