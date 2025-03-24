@@ -67,18 +67,18 @@ fi
 # need to wait for all the gpfdist processes to start
 # sleep 10
 
-# 创建FIFO用于并发控制
+# Create FIFO for concurrency control
 mkfifo /tmp/$$.fifo
 exec 5<> /tmp/$$.fifo
 rm -f /tmp/$$.fifo
 
-# 根据LOAD_PARALLEL的值初始化令牌
+# Initialize tokens based on the value of LOAD_PARALLEL
 for ((i=0; i<${LOAD_PARALLEL}; i++)); do
     echo >&5
 done
 
 for i in ${PWD}/*.${filter}.*.sql; do
-    # 获取令牌，控制并发数
+    # Acquire a token to control concurrency
     read -u 5
     {
         start_log
@@ -113,15 +113,15 @@ for i in ${PWD}/*.${filter}.*.sql; do
 
         print_log ${tuples}
 
-        # 释放令牌
+        # Release the token
         echo >&5
     } &
 done
 
-# 等待所有后台任务完成
+# Wait for all background tasks to complete
 wait
 
-# 关闭文件描述符
+# Close the file descriptor
 exec 5>&-
 
 log_time "finished loading tables"
