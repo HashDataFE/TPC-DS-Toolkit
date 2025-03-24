@@ -67,54 +67,62 @@ fi
 # need to wait for all the gpfdist processes to start
 # sleep 10
 
-max_jobs=$LOAD_PARALLEL
-current_jobs=0
+# 创建FIFO用于并发控制
+mkfifo /tmp/$$.fifo
+exec 5<> /tmp/$$.fifo
+rm -f /tmp/$$.fifo
+
+# 根据LOAD_PARALLEL的值初始化令牌
+for ((i=0; i<${LOAD_PARALLEL}; i++)); do
+    echo >&5
+done
 
 for i in ${PWD}/*.${filter}.*.sql; do
-{
-  # 等待任意一个后台任务完成，释放一个并发槽位
-  while [ $current_jobs -ge $max_jobs ]; do
-    wait -n
-    current_jobs=$((current_jobs - 1))
-  done
+    # 获取令牌，控制并发数
+    read -u 5
+    {
+        start_log
 
-  start_log
+        id=$(echo "${i}" | awk -F '.' '{print $1}')
+        export id
+        schema_name=$(echo "${i}" | awk -F '.' '{print $2}')
+        table_name=$(echo "${i}" | awk -F '.' '{print $3}')
 
-  id=$(echo ${i} | awk -F '.' '{print $1}')
-  export id
-  schema_name=$(echo ${i} | awk -F '.' '{print $2}')
-  table_name=$(echo ${i} | awk -F '.' '{print $3}')
+        if [ "${RUN_MODEL}" == "cloud" ]; then
+            GEN_DATA_PATH=${CLIENT_GEN_PATH}
+            tuples=0
+            for file in ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat; do
+                if [ -e "$file" ]; then
+                    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
+                    result=$(
+                        psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' WITH DELIMITER '|' NULL AS '' ESCAPE E'\\\\' ENCODING 'LATIN1'" | grep COPY | awk -F ' ' '{print $2}'
+                        exit ${PIPESTATUS[0]}
+                    )
+                    tuples=$((tuples + result))
+                else
+                    echo "No matching files found for pattern ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat"
+                fi
+            done
+        else
+            log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} | grep INSERT | awk -F ' ' '{print \$3}'"
+            tuples=$(
+                psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f "${i}" | grep INSERT | awk -F ' ' '{print $3}'
+                exit ${PIPESTATUS[0]}
+            )
+        fi
 
-  if [ "${RUN_MODEL}" == "cloud" ]; then
-    GEN_DATA_PATH=${CLIENT_GEN_PATH}
-    tuples=0
-    for file in ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat; do
-      if [ -e "$file" ]; then
-        log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
-        result=$(
-          psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' WITH DELIMITER '|' NULL AS '' ESCAPE E'\\\\' ENCODING 'LATIN1'" | grep COPY | awk -F ' ' '{print $2}'
-          exit ${PIPESTATUS[0]}
-        )
-      tuples=$((tuples + result))
-      else
-        echo "No matching files found for pattern ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat"
-      fi
-    done
-  else
-    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} | grep INSERT | awk -F ' ' '{print \$3}'"
-    tuples=$(
-      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} | grep INSERT | awk -F ' ' '{print $3}'
-      exit ${PIPESTATUS[0]}
-    )
-  fi
+        print_log ${tuples}
 
-  print_log ${tuples}
-  current_jobs=$((current_jobs + 1))  # 任务启动后增加计数器
-} &
+        # 释放令牌
+        echo >&5
+    } &
 done
 
 # 等待所有后台任务完成
 wait
+
+# 关闭文件描述符
+exec 5>&-
 
 log_time "finished loading tables"
 
