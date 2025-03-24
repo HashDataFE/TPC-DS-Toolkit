@@ -52,6 +52,8 @@ export DROP_EXISTING_TABLES="true"
 
 ## step 04_load
 export RUN_LOAD="true"
+###How many parallel processes to load data, default is 2 max is 24.
+export LOAD_PARALLEL="2"
 
 ## step 05_sql
 export RUN_SQL="true"

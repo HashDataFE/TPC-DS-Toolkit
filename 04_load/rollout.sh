@@ -67,43 +67,62 @@ fi
 # need to wait for all the gpfdist processes to start
 # sleep 10
 
-for i in ${PWD}/*.${filter}.*.sql; do
-{
-  start_log
+# Create FIFO for concurrency control
+mkfifo /tmp/$$.fifo
+exec 5<> /tmp/$$.fifo
+rm -f /tmp/$$.fifo
 
-  id=$(echo ${i} | awk -F '.' '{print $1}')
-  export id
-  schema_name=$(echo ${i} | awk -F '.' '{print $2}')
-  table_name=$(echo ${i} | awk -F '.' '{print $3}')
-
-  if [ "${RUN_MODEL}" == "cloud" ]; then
-
-    GEN_DATA_PATH=${CLIENT_GEN_PATH}
-    tuples=0
-    for file in ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat; do
-      if [ -e "$file" ]; then
-      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
-        result=$(
-          psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' WITH DELIMITER '|' NULL AS '' ESCAPE E'\\\\' ENCODING 'LATIN1'" | grep COPY | awk -F ' ' '{print $2}'
-          exit ${PIPESTATUS[0]}
-        )
-      tuples=$((tuples + result))
-      else
-        echo "No matching files found for pattern ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat"
-      fi
-    done
-  else
-    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} | grep INSERT | awk -F ' ' '{print \$3}'"
-    tuples=$(
-      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} | grep INSERT | awk -F ' ' '{print $3}'
-      exit ${PIPESTATUS[0]}
-    )
-  fi
-
-  print_log ${tuples}
-} &
+# Initialize tokens based on the value of LOAD_PARALLEL
+for ((i=0; i<${LOAD_PARALLEL}; i++)); do
+    echo >&5
 done
+
+for i in ${PWD}/*.${filter}.*.sql; do
+    # Acquire a token to control concurrency
+    read -u 5
+    {
+        start_log
+
+        id=$(echo "${i}" | awk -F '.' '{print $1}')
+        export id
+        schema_name=$(echo "${i}" | awk -F '.' '{print $2}')
+        table_name=$(echo "${i}" | awk -F '.' '{print $3}')
+
+        if [ "${RUN_MODEL}" == "cloud" ]; then
+            GEN_DATA_PATH=${CLIENT_GEN_PATH}
+            tuples=0
+            for file in ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat; do
+                if [ -e "$file" ]; then
+                    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
+                    result=$(
+                        psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' WITH DELIMITER '|' NULL AS '' ESCAPE E'\\\\' ENCODING 'LATIN1'" | grep COPY | awk -F ' ' '{print $2}'
+                        exit ${PIPESTATUS[0]}
+                    )
+                    tuples=$((tuples + result))
+                else
+                    echo "No matching files found for pattern ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat"
+                fi
+            done
+        else
+            log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} | grep INSERT | awk -F ' ' '{print \$3}'"
+            tuples=$(
+                psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f "${i}" | grep INSERT | awk -F ' ' '{print $3}'
+                exit ${PIPESTATUS[0]}
+            )
+        fi
+
+        print_log ${tuples}
+
+        # Release the token
+        echo >&5
+    } &
+done
+
+# Wait for all background tasks to complete
 wait
+
+# Close the file descriptor
+exec 5>&-
 
 log_time "finished loading tables"
 
