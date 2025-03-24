@@ -67,8 +67,17 @@ fi
 # need to wait for all the gpfdist processes to start
 # sleep 10
 
+max_jobs=$LOAD_PARALLEL
+current_jobs=0
+
 for i in ${PWD}/*.${filter}.*.sql; do
 {
+  # 等待任意一个后台任务完成，释放一个并发槽位
+  while [ $current_jobs -ge $max_jobs ]; do
+    wait -n
+    current_jobs=$((current_jobs - 1))
+  done
+
   start_log
 
   id=$(echo ${i} | awk -F '.' '{print $1}')
@@ -77,12 +86,11 @@ for i in ${PWD}/*.${filter}.*.sql; do
   table_name=$(echo ${i} | awk -F '.' '{print $3}')
 
   if [ "${RUN_MODEL}" == "cloud" ]; then
-
     GEN_DATA_PATH=${CLIENT_GEN_PATH}
     tuples=0
     for file in ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat; do
       if [ -e "$file" ]; then
-      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
+        log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
         result=$(
           psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' WITH DELIMITER '|' NULL AS '' ESCAPE E'\\\\' ENCODING 'LATIN1'" | grep COPY | awk -F ' ' '{print $2}'
           exit ${PIPESTATUS[0]}
@@ -101,8 +109,11 @@ for i in ${PWD}/*.${filter}.*.sql; do
   fi
 
   print_log ${tuples}
+  current_jobs=$((current_jobs + 1))  # 任务启动后增加计数器
 } &
 done
+
+# 等待所有后台任务完成
 wait
 
 log_time "finished loading tables"
