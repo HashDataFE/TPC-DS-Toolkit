@@ -3,7 +3,7 @@
 [![TPC-DS](https://img.shields.io/badge/TPC--DS-v3.2.0-blue)](http://www.tpc.org/tpcds/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
-A comprehensive tool for running TPC-DS benchmarks on HashData clusters, forked from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
+A comprehensive tool for running TPC-DS benchmarks on HashData / Cloudberry clusters. Originally from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
 
 ## Overview
 
