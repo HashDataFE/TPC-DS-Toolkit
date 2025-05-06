@@ -74,6 +74,24 @@ function check_binary() {
   set -e
 }
 
+function check_chip_type() {
+  # Get system architecture information
+  ARCH=$(uname -m)
+
+  # Determine the architecture type and assign to variable
+  if [[ $ARCH == *"x86"* || $ARCH == *"i386"* || $ARCH == *"i686"* ]]; then
+    export CHIP_TYPE="x86"
+  elif [[ $ARCH == *"arm"* || $ARCH == *"aarch64"* ]]; then
+    export CHIP_TYPE="arm"
+  else
+    export CHIP_TYPE="unknown"
+  fi
+
+  # Print the result for verification
+  echo "Chip type: $CHIP_TYPE"
+}
+
+check_chip_type
 check_binary
 
 if [ "${compile_flag}" == "true" ]; then
