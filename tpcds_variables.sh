@@ -83,7 +83,7 @@ export EXPLAIN_ANALYZE="false"
 export RANDOM_DISTRIBUTION="true"
 ## Set to on/off to enable vectorization
 export ENABLE_VECTORIZATION="off"
-export STATEMENT_MEM="2GB"
+export STATEMENT_MEM="1.9GB"
 export STATEMENT_MEM_MULTI_USER="1GB"
 ## Set gpfdist location where gpfdist will run p (primary) or m (mirror)
 export GPFDIST_LOCATION="p"
