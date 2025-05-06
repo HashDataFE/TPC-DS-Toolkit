@@ -4,7 +4,7 @@ export BENCH_ROLE="dsbench"
 export SCHEMA_NAME="tpcds"
 export GREENPLUM_PATH=$GPHOME/greenplum_path.sh
 ## NO longer needed, will check automatically 
-##Set chip type to arm or x86 to avoid compiling TPC-DS tools from source code.
+## Set chip type to arm or x86 to avoid compiling TPC-DS tools from source code.
 ## export CHIP_TYPE="x86"
  
 ## Set to "local" to run the benchmark on the COORDINATOR host or "cloud" to run the benchmark on remote cluster
