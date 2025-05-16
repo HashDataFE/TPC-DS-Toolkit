@@ -61,6 +61,8 @@ echo "**************************************************************************
 echo "Summary"
 echo "********************************************************************************"
 echo ""
+
+GEN_TIME=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select round(extract('epoch' from duration)) from tpcds_reports.gen_data")
 LOAD_TIME_SERIAL=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select round(sum(extract('epoch' from duration))) from tpcds_reports.load where tuples > 0")
 LOAD_TIME_PARALLEL=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "SELECT ROUND(MAX(end_epoch_seconds) - MIN(start_epoch_seconds)) FROM tpcds_reports.load WHERE tuples > 0")
 ANALYZE_TIME=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select round(sum(extract('epoch' from duration))) from tpcds_reports.sql where id = 1")
@@ -69,6 +71,7 @@ SUCCESS_QUERY=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select coun
 FAILD_QUERY=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select count(*) from tpcds_reports.sql where tuples < 0 and id > 1")
 
 printf "Scale Factor (SF)\t\t\t%d\n" "${SF}"
+printf "Generate Data (seconds)\t\t\t%d\n" "${GEN_TIME}"
 printf "Load SERIAL (seconds)\t\t\t%d\n" "${LOAD_TIME_SERIAL}"
 printf "Load PARALLEL (seconds)\t\t\t%d\n" "${LOAD_TIME_PARALLEL}"
 printf "Analyze (seconds)\t\t\t%d\n" "${ANALYZE_TIME}"
