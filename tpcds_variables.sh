@@ -19,6 +19,8 @@ export PSQL_OPTIONS="-h 2f445c57-c838-4038-a410-50ee36f9461d.cloud.hashdata.ai -
 export CLIENT_GEN_PATH="/tmp/dsbenchmark"
 ### How many parallel processes to run on the client to generate data
 export CLIENT_GEN_PARALLEL="2"
+### How many parallel processes to run on each segment to generate data in local mode
+export LOCAL_GEN_PARALLEL="1"
 
 # Benchmark options
 export GEN_DATA_SCALE="1"
@@ -41,7 +43,7 @@ export GEN_NEW_DATA="true"
 ## step 02_init
 export RUN_INIT="true"
 ## set this to true if binary location changed
-export RESET_ENV_ON_SEGMENT='false'
+export RESET_ENV_ON_SEGMENT='true'
 
 ## step 03_ddl
 # To run another TPC-DS with a different BENCH_ROLE using existing tables and data
