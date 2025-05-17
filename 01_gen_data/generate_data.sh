@@ -16,8 +16,8 @@ echo "PARALLEL: ${PARALLEL}"
 echo "GEN_DATA_PATH: ${GEN_DATA_PATH}"
 
 if [[ ! -d "${DATA_DIRECTORY}" && ! -L "${DATA_DIRECTORY}" ]]; then
-  echo "mkdir ${DATA_DIRECTORY}"
-  mkdir ${DATA_DIRECTORY}
+  echo "mkdir -p ${DATA_DIRECTORY}"
+  mkdir -p ${DATA_DIRECTORY}
 fi
 
 rm -rf ${DATA_DIRECTORY}/*
