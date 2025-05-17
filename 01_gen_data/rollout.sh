@@ -65,7 +65,7 @@ function gen_data() {
     #CHILD=$(echo ${i} | awk -F '|' '{print $1}')
     EXT_HOST=$(echo ${i} | awk -F '|' '{print $2}')
     GEN_DATA_PATH=$(echo ${i} | awk -F '|' '{print $3}' | sed 's#//#/#g')
-    GEN_DATA_PATH="${GEN_DATA_PATH}/dsbenchmark"
+    GEN_DATA_PATH="${GEN_DATA_PATH}/dsbenchmark/${CHILD}"
     for ((j=1; j<=LOCAL_GEN_PARALLEL; j++)); do
       echo "ssh -n ${EXT_HOST} \"rm -rf /tmp/tpcds.generate_data*.log\""
       ssh -n ${EXT_HOST} "rm -rf /tmp/tpcds.generate_data*.log"
