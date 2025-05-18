@@ -62,22 +62,18 @@ function gen_data() {
   
   CHILD=1
   for i in $(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"); do
-    #CHILD=$(echo ${i} | awk -F '|' '{print $1}')
     EXT_HOST=$(echo ${i} | awk -F '|' '{print $2}')
     SEG_DATA_PATH=$(echo ${i} | awk -F '|' '{print $3}' | sed 's#//#/#g')
-    #GEN_DATA_PATH="${GEN_DATA_PATH}/dsbenchmark/${CHILD}"
     echo "ssh -n ${EXT_HOST} \"rm -rf ${SEG_DATA_PATH}/dsbenchmark\""
     ssh -n ${EXT_HOST} "rm -rf ${SEG_DATA_PATH}/dsbenchmark"
+    echo "ssh -n ${EXT_HOST} \"rm -rf /tmp/tpcds.generate_data.*.log\""
+    ssh -n ${EXT_HOST} "rm -rf /tmp/tpcds.generate_data.*.log"
     for ((j=1; j<=LOCAL_GEN_PARALLEL; j++)); do
-      echo "ssh -n ${EXT_HOST} \"rm -rf /tmp/tpcds.generate_data.${CHILD}.log\""
-      ssh -n ${EXT_HOST} "rm -rf /tmp/tpcds.generate_data.${CHILD}.log"
       GEN_DATA_PATH="${SEG_DATA_PATH}/dsbenchmark/${CHILD}"
       echo "ssh -n ${EXT_HOST} \"bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'\""
       ssh -n ${EXT_HOST} "bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'" &
       CHILD=$((CHILD + 1))
     done
-    #echo "ssh -n ${EXT_HOST} \"bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'\""
-    #ssh -n ${EXT_HOST} "bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'" &
   done
   wait
 }
