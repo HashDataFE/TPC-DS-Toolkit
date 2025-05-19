@@ -54,6 +54,28 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
     print_log
   done
 
+  #Use partition tables for TPCDS when parameter TABLE_USE_PARTITION is set to true
+  #Check paramter TABLE_USE_PARTITION in tpcds_variables.sh
+  if [ "${TABLE_USE_PARTITION}" == "true" ]; then
+    for i in ${PWD}/*.${filter}.*.partition; do
+      start_log
+      id=$(echo ${i} | awk -F '.' '{print $1}')
+      export id
+      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+      export schema_name
+      table_name=$(echo ${i} | awk -F '.' '{print $3}')
+      export table_name
+
+      #Drop existing partition tables if they exist
+      SQL_QUERY="drop table if exists ${SCHEMA_NAME}.${table_name} cascade"
+      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"
+      
+      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
+      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
+      print_log
+    done
+  fi
+
   #external tables are the same for all gpdb
   get_gpfdist_port
 

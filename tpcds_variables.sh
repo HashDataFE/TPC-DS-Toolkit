@@ -102,5 +102,8 @@ export LD_PRELOAD=/lib64/libz.so.1 ps
 ## DO NOT set TABLE_ACCESS_METHOD for Cloud
 # export TABLE_ACCESS_METHOD="USING PAX"
 ## Set different storage options for each access method
+## Set to use partitione for following tables:
+## catalog_returns / catalog_sales / inventory / store_returns / store_sales / web_returns / web_sales
+# export TABLE_USE_PARTITION="true"
 ## SET TABLE_STORAGE_OPTIONS wiht different options in GP/CBDB/Cloud "appendoptimized=true compresstype=zstd, compresslevel=5, blocksize=1048576"
 export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"
