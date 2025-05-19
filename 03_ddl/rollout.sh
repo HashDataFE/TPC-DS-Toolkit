@@ -153,14 +153,24 @@ psql ${PSQL_OPTIONS} -tc "select \$\$GRANT ALL PRIVILEGES on table ${SCHEMA_NAME
 start_log
 
 if [ "${BENCH_ROLE}" != "gpadmin" ]; then
-  set +e
-  log_time "Drop role dependencies for ${BENCH_ROLE}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRoleDenp}"
-  set -e
-  log_time "Drop role ${BENCH_ROLE}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRole}"
-  log_time "Creating role ${BENCH_ROLE}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${CreateRole}"
+  # Check if role exists in PostgreSQL
+
+  EXISTS=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT 1 FROM pg_roles WHERE rolname='${BENCH_ROLE}'")
+
+  # Create role if not exists
+  if [ "$EXISTS" != "1" ]; then
+    echo "Role ${BENCH_ROLE} does not exist. Creating..."
+    log_time "Creating role ${BENCH_ROLE}"
+    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${CreateRole}"
+  else
+    set +e
+    log_time "Drop role dependencies for ${BENCH_ROLE}"
+    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRoleDenp}"
+    set -e
+  fi
+  
+  #log_time "Drop role ${BENCH_ROLE}"
+  #psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRole}"
   log_time "Grant schema privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantSchemaPrivileges}"
   log_time "Grant table privileges to role ${BENCH_ROLE}"
