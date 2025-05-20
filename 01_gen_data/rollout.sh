@@ -4,9 +4,9 @@
 PWD=$(get_pwd ${BASH_SOURCE[0]})
 
 if [ "${GEN_DATA_SCALE}" == "" ]; then
-  echo "You must provide the scale as a parameter in terms of Gigabytes."
-  echo "Example: ./rollout.sh 100"
-  echo "This will create 100 GB of data for this test."
+  log_time "You must provide the scale as a parameter in terms of Gigabytes."
+  log_time "Example: ./rollout.sh 100"
+  log_time "This will create 100 GB of data for this test."
   exit 1
 fi
 
@@ -44,7 +44,7 @@ function gen_data() {
   get_version
   PARALLEL=$(gpstate | grep "Total primary segments" | awk -F '=' '{print $2}')
   if [ "${PARALLEL}" == "" ]; then
-    echo "ERROR: Unable to determine how many primary segments are in the cluster using gpstate."
+    log_time "ERROR: Unable to determine how many primary segments are in the cluster using gpstate."
     exit 1
   fi
 
@@ -65,9 +65,9 @@ function gen_data() {
   for h in $(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"); do
     EXT_HOST=$(echo ${h} | awk -F '|' '{print $2}')
     SEG_DATA_PATH=$(echo ${h} | awk -F '|' '{print $3}' | sed 's#//#/#g')
-    echo "ssh -n ${EXT_HOST} \"rm -rf ${SEG_DATA_PATH}/dsbenchmark\""
+    log_time "ssh -n ${EXT_HOST} \"rm -rf ${SEG_DATA_PATH}/dsbenchmark\""
     ssh -n ${EXT_HOST} "rm -rf ${SEG_DATA_PATH}/dsbenchmark"
-    echo "ssh -n ${EXT_HOST} \"mkdir -p ${SEG_DATA_PATH}/dsbenchmark\""
+    log_time "ssh -n ${EXT_HOST} \"mkdir -p ${SEG_DATA_PATH}/dsbenchmark\""
     ssh -n ${EXT_HOST} "mkdir -p ${SEG_DATA_PATH}/dsbenchmark"
   done
   
@@ -78,7 +78,7 @@ function gen_data() {
 
     for ((j=1; j<=LOCAL_GEN_PARALLEL; j++)); do
       GEN_DATA_PATH="${SEG_DATA_PATH}/dsbenchmark/${CHILD}"
-      echo "ssh -n ${EXT_HOST} \"bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'\""
+      log_time "ssh -n ${EXT_HOST} \"bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'\""
       ssh -n ${EXT_HOST} "bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'" &
       CHILD=$((CHILD + 1))
     done
@@ -105,7 +105,7 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
     GEN_DATA_PATH="${CLIENT_GEN_PATH}"
 
     if [[ ! -d "${GEN_DATA_PATH}" && ! -L "${GEN_DATA_PATH}" ]]; then
-      echo "mkdir ${GEN_DATA_PATH}"
+      log_time "mkdir ${GEN_DATA_PATH}"
       mkdir ${GEN_DATA_PATH}
     fi
     rm -rf ${GEN_DATA_PATH}/*
@@ -125,9 +125,9 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
     echo ""
     log_time "Current database running this test is:\n${VERSION_FULL}"
     get_count_generate_data
-    log_time "Now generating data.  This may take a while."
+    echo "Now generating data.  This may take a while."
     seconds=0
-    echo -ne "Generating data duration: "
+    log_time -ne "Generating data duration: "
     tput sc
     while [ "$count" -gt "0" ]; do
       tput rc
