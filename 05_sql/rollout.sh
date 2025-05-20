@@ -42,8 +42,8 @@ if [ "${RUN_ANALYZE}" == "true" ]; then
   #  log_time "analyzedb -d ${dbname} -s ${SCHEMA_NAME} --full -a"
   #  analyzedb -d ${dbname} -s ${SCHEMA_NAME} --full -a
   #else
-  log_time "psql -t -A ${PSQL_OPTIONS} -c \"select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';\" |xargs -I {} -P 5 psql -a -A ${PSQL_OPTIONS} -c \"{}\""
-  psql -t -A ${PSQL_OPTIONS} -c "select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';" |xargs -I {} -P 5 psql -a -A ${PSQL_OPTIONS} -c "{}"
+  log_time "psql -t -A ${PSQL_OPTIONS} -c \"select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';\" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c \"{}\""
+  psql -t -A ${PSQL_OPTIONS} -c "select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c "{}"
   #fi
 
 

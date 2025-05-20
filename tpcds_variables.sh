@@ -19,6 +19,8 @@ export PSQL_OPTIONS="-h 2f445c57-c838-4038-a410-50ee36f9461d.cloud.hashdata.ai -
 export CLIENT_GEN_PATH="/tmp/dsbenchmark"
 ### How many parallel processes to run on the client to generate data
 export CLIENT_GEN_PARALLEL="2"
+
+## Follwoing variables only take effect when RUN_MODEL is set to "local".
 ### How many parallel processes to run on each segment to generate data in local mode
 export LOCAL_GEN_PARALLEL="1"
 
@@ -61,6 +63,7 @@ export LOAD_PARALLEL="2"
 ## step 05_sql
 export RUN_SQL="true"
 export RUN_ANALYZE="true"
+export RUN_ANALYZE_PARALLEL="5"
 export RUN_QGEN="true"
 ## set wait time between each query execution
 export QUERY_INTERVAL="0"
