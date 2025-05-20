@@ -22,13 +22,6 @@ else
   distkeyfile="distribution.txt"
 fi
 
-
-    
-    # 执行查询并记录结果
-    psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME \
-        -v ON_ERROR_STOP=1 -q -P pager=off -c "$sql"
-}
-
 for z in $(cat ${PWD}/${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
   distribution=$(echo ${z} | awk -F '|' '{print $3}')
