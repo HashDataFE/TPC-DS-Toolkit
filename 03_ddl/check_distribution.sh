@@ -28,7 +28,7 @@ for z in $(cat ${PWD}/${distkeyfile}); do
   if [ "${distribution}" != "REPLICATED" ]; then
     # Check the table distribution situations
     log_time "Distribution for table ${SCHEMA_NAME}.${table_name}"
-    local sql=$(cat <<EOF
+    sql=$(cat <<EOF
 WITH segment_counts AS (
     SELECT 
         gp_segment_id,
