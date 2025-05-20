@@ -103,7 +103,7 @@ export LD_PRELOAD=/lib64/libz.so.1 ps
 ## Support TABLE_ACCESS_METHOD to ao_row / ao_column / heap in both GPDB 7 / CBDB
 ## Support TABLE_ACCESS_METHOD to ”PAX“ for PAX table format and remove blocksize option in TABLE_STORAGE_OPTIONS for CBDB 2.0 only.
 ## DO NOT set TABLE_ACCESS_METHOD for Cloud
-# export TABLE_ACCESS_METHOD="USING PAX"
+# export TABLE_ACCESS_METHOD="USING ao_column"
 ## Set different storage options for each access method
 ## Set to use partitione for following tables:
 ## catalog_returns / catalog_sales / inventory / store_returns / store_sales / web_returns / web_sales
