@@ -4,8 +4,8 @@
 #gpconfig -c gp_resgroup_memory_policy -v auto
 #gpconfig -c gp_workfile_compression -v off
 
-gpconfig -c runaway_detector_activation_percent -v 100
-gpconfig -c optimizer_enable_associativity -v on
+#gpconfig -c runaway_detector_activation_percent -v 100
+#gpconfig -c optimizer_enable_associativity -v on
 
 gpconfig -c gp_interconnect_queue_depth -v 16
 gpconfig -c gp_interconnect_snd_queue_depth -v 16
