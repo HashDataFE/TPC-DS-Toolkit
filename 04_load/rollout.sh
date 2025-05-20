@@ -14,16 +14,16 @@ get_version
 filter="gpdb"
 
 function copy_script() {
-  echo "copy the start and stop scripts to the segment hosts in the cluster"
+  log_time "copy the start and stop scripts to the segment hosts in the cluster"
   for i in $(cat ${TPC_DS_DIR}/segment_hosts.txt); do
-    echo "scp start_gpfdist.sh stop_gpfdist.sh ${i}:"
+    log_time "scp start_gpfdist.sh stop_gpfdist.sh ${i}:"
     scp ${PWD}/start_gpfdist.sh ${PWD}/stop_gpfdist.sh ${i}: &
   done
   wait
 }
 
 function stop_gpfdist() {
-  echo "stop gpfdist on all ports"
+  log_time "stop gpfdist on all ports"
   for i in $(cat ${TPC_DS_DIR}/segment_hosts.txt); do
     ssh -n $i "bash -c 'cd ~/; ./stop_gpfdist.sh'" &
   done
@@ -49,7 +49,7 @@ function start_gpfdist() {
     GEN_DATA_PATH="${GEN_DATA_PATH}/dsbenchmark"
     PORT=$((GPFDIST_PORT + flag))
     let flag=$flag+1
-    echo "ssh -n ${EXT_HOST} \"bash -c 'cd ~${ADMIN_USER}; ./start_gpfdist.sh $PORT ${GEN_DATA_PATH}'\""
+    log_time "ssh -n ${EXT_HOST} \"bash -c 'cd ~${ADMIN_USER}; ./start_gpfdist.sh $PORT ${GEN_DATA_PATH}'\""
     ssh -n ${EXT_HOST} "bash -c 'cd ~${ADMIN_USER}; ./start_gpfdist.sh $PORT ${GEN_DATA_PATH}'" &
   done
   wait
@@ -100,7 +100,7 @@ for i in ${PWD}/*.${filter}.*.sql; do
                     )
                     tuples=$((tuples + result))
                 else
-                    echo "No matching files found for pattern ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat"
+                    log_time "No matching files found for pattern ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat"
                 fi
             done
         else
@@ -132,6 +132,5 @@ elif [ "${RUN_MODEL}" == "local" ]; then
   stop_gpfdist
 fi
 
-echo "Finished ${step}"
 log_time "Step ${step} finished"
 printf "\n"
