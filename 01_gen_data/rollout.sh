@@ -23,7 +23,7 @@ function get_count_generate_data() {
 }
 
 function kill_orphaned_data_gen() {
-  echo "kill any orphaned dsdgen processes on segment hosts"
+  log_time "kill any orphaned dsdgen processes on segment hosts"
   # always return true even if no processes were killed
   for i in $(cat ${TPC_DS_DIR}/segment_hosts.txt); do
     ssh ${i} "pkill dsdgen" || true &
@@ -33,7 +33,7 @@ function kill_orphaned_data_gen() {
 }
 
 function copy_generate_data() {
-  echo "copy generate_data.sh to segment hosts"
+  log_time "copy generate_data.sh to segment hosts"
   for i in $(cat ${TPC_DS_DIR}/segment_hosts.txt); do
     scp ${PWD}/generate_data.sh ${i}: &
   done
@@ -51,7 +51,7 @@ function gen_data() {
   #Actual PARALLEL should be $LOCAL_GEN_PARALLEL*$PARALLEL
   PARALLEL=$((LOCAL_GEN_PARALLEL * PARALLEL))
   
-  echo "Number of Generate Data Parallel Process is: $PARALLEL"
+  log_time "Number of Generate Data Parallel Process is: $PARALLEL"
 
   
   if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
@@ -61,7 +61,7 @@ function gen_data() {
   
   fi
   
-  echo "Clean up previous data generation folder on segments."
+  log_time "Clean up previous data generation folder on segments."
   for h in $(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"); do
     EXT_HOST=$(echo ${h} | awk -F '|' '{print $2}')
     SEG_DATA_PATH=$(echo ${h} | awk -F '|' '{print $3}' | sed 's#//#/#g')
@@ -115,8 +115,6 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
       log_time "sh ${PWD}/dsdgen -scale ${GEN_DATA_SCALE} -dir ${GEN_DATA_PATH} -parallel ${PARALLEL} -child ${CHILD} -terminate n > ${GEN_DATA_PATH}/logs/tpcds.generate_data.${CHILD}.log 2>&1 &"
       cd ${PWD}
       ${PWD}/dsdgen -scale ${GEN_DATA_SCALE} -dir ${GEN_DATA_PATH} -parallel ${PARALLEL} -child ${CHILD} -terminate n > ${GEN_DATA_PATH}/logs/tpcds.generate_data.${CHILD}.log 2>&1 &
-      #echo "sh ${PWD}/generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > ${GEN_DATA_PATH}/tpcds.generate_data.${CHILD}.log 2>&1 &"
-      #sh ${PWD}/generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > ${GEN_DATA_PATH}/tpcds.generate_data.${CHILD}.log 2>&1 &
       CHILD=$((CHILD + 1))
     done
     wait
@@ -124,10 +122,10 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
     kill_orphaned_data_gen
     copy_generate_data
     gen_data
-    echo "Current database running this test is $VERSION"
     echo ""
+    log_time "Current database running this test is ${VERSION_FULL}"
     get_count_generate_data
-    echo "Now generating data.  This may take a while."
+    log_time "Now generating data.  This may take a while."
     seconds=0
     echo -ne "Generating data duration: "
     tput sc
@@ -140,8 +138,7 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
     done
   fi
   echo ""
-  echo "Done generating data"
-  echo ""
+  log_time "Done generating data"
 fi
 
 print_log
