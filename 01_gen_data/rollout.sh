@@ -123,7 +123,7 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
     copy_generate_data
     gen_data
     echo ""
-    log_time "Current database running this test is ${VERSION_FULL}"
+    log_time "Current database running this test is:\n ${VERSION_FULL}"
     get_count_generate_data
     log_time "Now generating data.  This may take a while."
     seconds=0
