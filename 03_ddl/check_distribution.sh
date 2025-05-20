@@ -1,14 +1,18 @@
 #!/bin/bash
 
-# To run this shell, please source tpcds_variables.sh and functions.sh manually.
+# To run this shell, please source tpcds_variables.sh and functions.sh.
 
-# VARS_FILE="tpcds_variables.sh"
-# FUNCTIONS_FILE="functions.sh"
+VARS_FILE="tpcds_variables.sh"
+FUNCTIONS_FILE="functions.sh"
+
+current_dir=$(pwd)
+parent_dir="${current_dir%/*}"
+echo "Parent Directory: $parent_dir"
 
 # shellcheck source=tpcds_variables.sh
-# source ./${VARS_FILE}
+source $parent_dir/${VARS_FILE}
 # shellcheck source=functions.sh
-# source ./${FUNCTIONS_FILE}
+source $parent_dir/${FUNCTIONS_FILE}
 
 PWD=$(get_pwd ${BASH_SOURCE[0]})
 
