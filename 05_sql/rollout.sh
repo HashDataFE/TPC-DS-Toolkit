@@ -28,23 +28,23 @@ export table_name
 
 if [ "${RUN_ANALYZE}" == "true" ]; then
 
-  dbname="$PGDATABASE"
-  if [ "${dbname}" == "" ]; then
-    dbname="${ADMIN_USER}"
-  fi
+  #dbname="$PGDATABASE"
+  #if [ "${dbname}" == "" ]; then
+  #  dbname="${ADMIN_USER}"
+  #fi
 
-  if [ "${PGPORT}" == "" ]; then
-    export PGPORT=5432
-  fi
+  #if [ "${PGPORT}" == "" ]; then
+  #  export PGPORT=5432
+  #fi
 
   #Analyze schema using analyzedb
-  if [ "$RUN_MODEL" == "local" ]; then
-    log_time "analyzedb -d ${dbname} -s ${SCHEMA_NAME} --full -a"
-    analyzedb -d ${dbname} -s ${SCHEMA_NAME} --full -a
-  else
-    log_time "psql -t -A ${PSQL_OPTIONS} -c \"select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';\" |xargs -I {} -P 5 psql -a -A ${PSQL_OPTIONS} -c \"{}\""
-    psql -t -A ${PSQL_OPTIONS} -c "select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';" |xargs -I {} -P 5 psql -a -A ${PSQL_OPTIONS} -c "{}"
-  fi
+  #if [ "$RUN_MODEL" == "local" ]; then
+  #  log_time "analyzedb -d ${dbname} -s ${SCHEMA_NAME} --full -a"
+  #  analyzedb -d ${dbname} -s ${SCHEMA_NAME} --full -a
+  #else
+  log_time "psql -t -A ${PSQL_OPTIONS} -c \"select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';\" |xargs -I {} -P 5 psql -a -A ${PSQL_OPTIONS} -c \"{}\""
+  psql -t -A ${PSQL_OPTIONS} -c "select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';" |xargs -I {} -P 5 psql -a -A ${PSQL_OPTIONS} -c "{}"
+  #fi
 
 
   #make sure root stats are gathered
