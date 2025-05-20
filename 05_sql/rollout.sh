@@ -10,7 +10,7 @@ printf "\n"
 
 init_log ${step}
 get_version
-
+log_time "Current database running this test is:\n${VERSION_FULL}"
 
 if [ "${RUN_QGEN}" == true ]; then
   log_time "Generate queries based on scale"
