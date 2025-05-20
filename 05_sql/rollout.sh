@@ -28,25 +28,10 @@ export table_name
 
 if [ "${RUN_ANALYZE}" == "true" ]; then
 
-  #dbname="$PGDATABASE"
-  #if [ "${dbname}" == "" ]; then
-  #  dbname="${ADMIN_USER}"
-  #fi
-
-  #if [ "${PGPORT}" == "" ]; then
-  #  export PGPORT=5432
-  #fi
-
-  #Analyze schema using analyzedb
-  #if [ "$RUN_MODEL" == "local" ]; then
-  #  log_time "analyzedb -d ${dbname} -s ${SCHEMA_NAME} --full -a"
-  #  analyzedb -d ${dbname} -s ${SCHEMA_NAME} --full -a
-  #else
+  log_time "Analyze tables started:"
   log_time "psql -t -A ${PSQL_OPTIONS} -c \"select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';\" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c \"{}\""
   psql -t -A ${PSQL_OPTIONS} -c "select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${SCHEMA_NAME}';" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c "{}"
-  #fi
-
-
+  
   #make sure root stats are gathered
   if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ] || [ "${VERSION}" == "gpdb_6" ]; then
     SQL_QUERY="select n.nspname, c.relname from pg_class c join pg_namespace n on c.relnamespace = n.oid left outer join (select starelid from pg_statistic group by starelid) s on c.oid = s.starelid join (select tablename from pg_partitions group by tablename) p on p.tablename = c.relname where n.nspname = '${SCHEMA_NAME}' and s.starelid is null order by 1, 2"
@@ -57,14 +42,14 @@ if [ "${RUN_ANALYZE}" == "true" ]; then
   for t in $(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "${SQL_QUERY}"); do
     schema_name=$(echo ${t} | awk -F '|' '{print $1}')
     table_name=$(echo ${t} | awk -F '|' '{print $2}')
-    echo "Missing root stats for ${schema_name}.${table_name}"
+    log_time "Missing root stats for ${schema_name}.${table_name}"
     SQL_QUERY="ANALYZE ROOTPARTITION ${schema_name}.${table_name}"
     log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c \"${SQL_QUERY}\""
     psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "${SQL_QUERY}"
   done
-
+  log_time "Analyze tables finished."
 else
-  echo "AnalyzeDB Skipped..."
+  log_time "Analyze tables skipped."
 fi
 
 tuples="-1"
