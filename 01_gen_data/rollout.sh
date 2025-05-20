@@ -127,11 +127,11 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
     get_count_generate_data
     echo "Now generating data.  This may take a while."
     seconds=0
-    log_time -ne "Generating data duration: "
+    log_time "Generating data duration: "
     tput sc
     while [ "$count" -gt "0" ]; do
       tput rc
-      echo -ne "${seconds} second(s)"
+      echo "${seconds} second(s)"
       sleep 5
       seconds=$((seconds + 5))
       get_count_generate_data
