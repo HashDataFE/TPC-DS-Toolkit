@@ -24,6 +24,8 @@ for z in $(cat ${PWD}/${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
   distribution=$(echo ${z} | awk -F '|' '{print $3}')
   if [ "${distribution}" != "REPLICATED" ]; then
-     psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "SELECT gp_segment_id,COUNT(*) AS row_count FROM ${SCHEMA_NAME}.${table_name} GROUP BY gp_segment_id ORDER BY row_count DESC;"
+    # Check if the data distribution for tables
+    log_time "Distribution for table ${SCHEMA_NAME}.${table_name}"
+    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "SELECT gp_segment_id,COUNT(*) AS row_count FROM ${SCHEMA_NAME}.${table_name} GROUP BY gp_segment_id ORDER BY row_count DESC;"
   fi
 done
