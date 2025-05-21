@@ -3,7 +3,7 @@
 [![TPC-DS](https://img.shields.io/badge/TPC--DS-v3.2.0-blue)](http://www.tpc.org/tpcds/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
-A comprehensive tool for running TPC-DS benchmarks on HashData / Cloudberry clusters. Originally from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
+A comprehensive tool for running TPC-DS benchmarks on Cloudberry / HashData / Greenplum clusters. Originally from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
 
 ## Overview
 
@@ -53,18 +53,28 @@ vim tpcds_variables.sh
 This tool uses TPC-DS 3.2.0 as of version 1.2.
 
 ## Prerequisites
+This tool is build with shell scripts and only tested on CentOS based Operaing Systems.
+To adapted with different products, there are many options available to choose storage type /  partitions / optimizer / distribution policies etc, please review the tpcds_variables.sh for more detail configuration options for different models and products.
+Tested products:
+Cloudberry 1.x / Cloudberry 2.X
+Hashdata Enterprise / HashData Lightning 
+Greenplum 4.x / Greenplum 5.x / Greenplum 6.x / Greenplum 7.x
+
 
 ### Local Cluster Setup
 For running tests on the coordinator host:
+This mode will leverage the MPP architeture to use data directories of segment nodes to generate data and load data with 'gpfdist' protocol.
+More resources will be used for data generating and loading to accerlarate the test process.
 
 1. Set `RUN_MODEL="local"` in `tpcds_variables.sh`
 2. Ensure running HashData Database with `gpadmin` access
 3. Create `gpadmin` database
-4. Have `root` access on master node (`mdw`) 
-5. Configure `ssh` between `mdw` and segment nodes (`sdw1..n`)
+4. Configure password-less `ssh` between `mdw` and segment nodes (`sdw1..n`)
 
 ### Remote Client Setup  
 For running tests from a remote client:
+With this mode, all data will be generated on the clients, data will be imported into database with `copy` command.
+This mode works for HashData cloud / Cloudberry / Greenpplum / HashData lightning and should work for other Postgresql compatible products, however, it is recommended to use `local` mode for non-Cloud MPP products.
 
 1. Set `RUN_MODEL="cloud"` in `tpcds_variables.sh`
 2. Install `psql` client with passwordless access (`.pgpass`)
@@ -72,11 +82,12 @@ For running tests from a remote client:
    ```sql
    ALTER ROLE gpadmin SET warehouse=testforcloud;
    ```
-4. Configure required variables:
+4. Configure required variables in tpcds_variables.sh and follow the instructions.
    ```bash
    export RANDOM_DISTRIBUTION="true"
    export TABLE_STORAGE_OPTIONS="compresstype=zstd, compresslevel=5"
-   export CLIENT_GEN_PATH="/tmp/dsbenchmark" # Optional data location
+   export CLIENT_GEN_PATH="/tmp/dsbenchmark" 
+   export CLIENT_GEN_PARALLEL="2"
    ```
 
 All the following examples are using standard host name convention of HashData using `mdw` for master node, and `sdw1..n` for the segment nodes.
@@ -94,11 +105,11 @@ The original source code is from http://tpc.org/tpc_documents_current_versions/c
 
 ## Installation
 
-Just clone the repo with GIT or download source code from gitlab.
+Just clone the repo with GIT or download source code from github.
 
 ```bash
 ssh gpadmin@mdw
-git clone https://code.hashdata.xyz/field-engineering/TPC-DS-HashData 
+git clone git@github.com:HashDataFE/TPC-DS-CBDB.git
 ```
 Put the folder under /home/gpadmin/ and change owner to gpadmin.
 
@@ -253,7 +264,8 @@ These are miscellaneous controlling variables:
   If you set to `true`, you can have the queries execute with `EXPLAIN ANALYZE` in order to see exactly the query plan used, the cost, the memory used, etc.
   This option is for debugging purpose only, since collecting those query statistics will disturb the benchmark.
 - `RANDOM_DISTRIBUTION`: default `false`.
-  If you set to `true`, the fact tables are distributed randomly other than following a pre-defined distribution column.
+  If you set to `true`, the fact tables are distributed randomly other than following a pre-defined distribution column. Random distribution shold be used for Cloud products. 
+  Pre-defined table distribution policies are in: TPC-DS-CBDB/03_ddl/distribution.txt with `REPLICATED` policy supported product, 14 tables are using `REPLICATED` distribution policy by default.  TPC-DS-CBDB/03_ddl/distribution_original.txt are for early Greenplum products without `REPLICATED` policy supported.
 - `SINGLE_USER_ITERATION`: default `1`.
   This controls how many times the power test will run.
   During the final score computation, the minimal/fastest query elapsed time of multiple runs will be used.
@@ -261,6 +273,24 @@ These are miscellaneous controlling variables:
 - `STATEMENT_MEM`: default 2GB which set the `statement_mem` parameter for each statement of single user test. Set with `GB` or `MB`. STATEMENT_MEM should be less than gp_vmem_protect_limit.
 - `STATEMENT_MEM_MULTI_USER`: default 1GB which set the `statement_mem` parameter for each statement of multiple user test. Set with `GB` or `MB`. Please note that, `STATEMENT_MEM_MULTI_USER` * `MULTI_USER_COUNT` should be less than `gp_vmem_protect_limit`.
 - `ENABLE_VECTORIZATION`: set to true to enable vectorization computing for better performance. Feature is suppported as of Lightning 1.5.3. Default is false. Only works for AO with column and PAX table type.
+
+### Storage Options
+```bash
+# Storage options
+## Support TABLE_ACCESS_METHOD to ao_row / ao_column / heap in both GPDB 7 / CBDB
+## Support TABLE_ACCESS_METHOD to ”PAX“ for PAX table format and remove blocksize option in TABLE_STORAGE_OPTIONS for CBDB 2.0 only.
+## DO NOT set TABLE_ACCESS_METHOD for Cloud
+# export TABLE_ACCESS_METHOD="USING ao_column"
+## Set different storage options for each access method
+## Set to use partitione for following tables:
+## catalog_returns / catalog_sales / inventory / store_returns / store_sales / web_returns / web_sales
+# export TABLE_USE_PARTITION="true"
+## SET TABLE_STORAGE_OPTIONS wiht different options in GP/CBDB/Cloud "appendoptimized=true compresstype=zstd, compresslevel=5, blocksize=1048576"
+export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"
+```
+- `TABLE_ACCESS_METHOD`: Default to non-value to compatible with HashDataCloud and early Greenplum versions, should be set to `USING ao_column` for Cloudbery or Greenplum. `USING PAX` is available for Cloudberry 2.0 and HashData Lightning.
+- `TABLE_USE_PARTITION`: Set this to `true` will use table partitions for 7 large tables, this should improve performance for Cloudberry / Greenplum. All table DDL scripts are localed in TPC-DS-CBDB/03_ddl/. Partition table DDL ends with *.sql.partition.
+- `TABLE_STORAGE_OPTIONS`: if `TABLE_ACCESS_METHOD` are not supported in early Greenplum products, use full options `appendoptimized=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576`
 
 ## Performance Tuning
 
@@ -276,12 +306,9 @@ For optimal performance:
 2. **Storage Optimization**
    ```bash
    # For best compression ratio
+   export TABLE_ACCESS_METHOD="USING ao_column"
    export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=9)"
-   
-   # For best performance
-   export TABLE_ACCESS_METHOD="USING pax"
-   export ENABLE_VECTORIZATION="on"
-   ```
+   export TABLE_USE_PARTITION="true"
 
 3. **Concurrency Tuning**
    ```bash
