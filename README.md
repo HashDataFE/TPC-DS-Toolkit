@@ -3,7 +3,7 @@
 [![TPC-DS](https://img.shields.io/badge/TPC--DS-v3.2.0-blue)](http://www.tpc.org/tpcds/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
-A comprehensive tool for running TPC-DS benchmarks on Cloudberry / HashData / Greenplum clusters. Originally from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
+A comprehensive tool for running TPC-DS benchmarks on Cloudberry / HashData / Greenplum clusters. Originally derived from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
 
 ## Overview
 
@@ -21,6 +21,11 @@ This tool provides:
 - [Installation](#installation)
 - [Usage](#usage)
 - [Configuration](#configuration)
+  - [Environment Options](#environment-options)
+  - [Benchmark Options](#benchmark-options)
+  - [Storage Options](#storage-options)
+  - [Step Control Options](#step-control-options)
+  - [Miscellaneous Options](#miscellaneous-options)
 - [Performance Tuning](#performance-tuning)
 - [Benchmark Modifications](#benchmark-modifications)
 - [Troubleshooting](#troubleshooting)
@@ -53,28 +58,28 @@ vim tpcds_variables.sh
 This tool uses TPC-DS 3.2.0 as of version 1.2.
 
 ## Prerequisites
-This tool is build with shell scripts and only tested on CentOS based Operaing Systems.
-To adapted with different products, there are many options available to choose storage type /  partitions / optimizer / distribution policies etc, please review the tpcds_variables.sh for more detail configuration options for different models and products.
-Tested products:
-Cloudberry 1.x / Cloudberry 2.X
-Hashdata Enterprise / HashData Lightning 
-Greenplum 4.x / Greenplum 5.x / Greenplum 6.x / Greenplum 7.x
 
+This tool is built with shell scripts and has been tested primarily on CentOS-based operating systems. To accommodate different products, various options are available to choose storage types, partitions, optimizer settings, and distribution policies. Please review the `tpcds_variables.sh` for detailed configuration options for different models and products.
+
+### Tested Products
+- Cloudberry 1.x / Cloudberry 2.X
+- HashData Enterprise / HashData Lightning
+- Greenplum 4.x / Greenplum 5.x / Greenplum 6.x / Greenplum 7.x
 
 ### Local Cluster Setup
 For running tests on the coordinator host:
-This mode will leverage the MPP architeture to use data directories of segment nodes to generate data and load data with 'gpfdist' protocol.
-More resources will be used for data generating and loading to accerlarate the test process.
+
+This mode leverages the MPP architecture to use data directories of segment nodes to generate data and load data using the 'gpfdist' protocol. More resources will be utilized for data generation and loading to accelerate the test process.
 
 1. Set `RUN_MODEL="local"` in `tpcds_variables.sh`
-2. Ensure running HashData Database with `gpadmin` access
-3. Create `gpadmin` database
-4. Configure password-less `ssh` between `mdw` and segment nodes (`sdw1..n`)
+2. Ensure you have a running HashData Database with `gpadmin` access
+3. Create a `gpadmin` database
+4. Configure password-less `ssh` between `mdw` (master) and segment nodes (`sdw1..n`)
 
 ### Remote Client Setup  
 For running tests from a remote client:
-With this mode, all data will be generated on the clients, data will be imported into database with `copy` command.
-This mode works for HashData cloud / Cloudberry / Greenpplum / HashData lightning and should work for other Postgresql compatible products, however, it is recommended to use `local` mode for non-Cloud MPP products.
+
+With this mode, all data will be generated on the client machine, and data will be imported into the database using the `copy` command. This mode works for HashData Cloud, Cloudberry, Greenplum, HashData Lightning, and should work for other PostgreSQL-compatible products. However, it is recommended to use `local` mode for non-Cloud MPP products.
 
 1. Set `RUN_MODEL="cloud"` in `tpcds_variables.sh`
 2. Install `psql` client with passwordless access (`.pgpass`)
@@ -82,7 +87,7 @@ This mode works for HashData cloud / Cloudberry / Greenpplum / HashData lightnin
    ```sql
    ALTER ROLE gpadmin SET warehouse=testforcloud;
    ```
-4. Configure required variables in tpcds_variables.sh and follow the instructions.
+4. Configure required variables in `tpcds_variables.sh`:
    ```bash
    export RANDOM_DISTRIBUTION="true"
    export TABLE_STORAGE_OPTIONS="compresstype=zstd, compresslevel=5"
@@ -90,49 +95,49 @@ This mode works for HashData cloud / Cloudberry / Greenpplum / HashData lightnin
    export CLIENT_GEN_PARALLEL="2"
    ```
 
-All the following examples are using standard host name convention of HashData using `mdw` for master node, and `sdw1..n` for the segment nodes.
+All examples in this documentation use the standard host name convention of HashData with `mdw` for the master node and `sdw1..n` for the segment nodes.
 
 ### TPC-DS Tools Dependencies
 
-Install the dependencies on `mdw` for compiling the `dsdgen` (data generation) and `dsqgen` (query generation).
+Install the dependencies on `mdw` for compiling the `dsdgen` (data generation) and `dsqgen` (query generation) tools:
 
 ```bash
 ssh root@mdw
 yum -y install gcc make byacc
 ```
 
-The original source code is from http://tpc.org/tpc_documents_current_versions/current_specifications5.asp.
+The original source code is from the [TPC website](http://tpc.org/tpc_documents_current_versions/current_specifications5.asp).
 
 ## Installation
 
-Just clone the repo with GIT or download source code from github.
+Simply clone the repository with Git or download the source code from GitHub:
 
 ```bash
 ssh gpadmin@mdw
 git clone git@github.com:HashDataFE/TPC-DS-CBDB.git
 ```
-Put the folder under /home/gpadmin/ and change owner to gpadmin.
+
+Place the folder under `/home/gpadmin/` and change ownership to gpadmin:
 
 ```bash
-chown -R gpadmin.gpadmin TPC-DS-HashData
+chown -R gpadmin:gpadmin TPC-DS-CBDB
 ```
 
 ## Usage
 
-To run the benchmark, login as `gpadmin` on `mdw`:
+To run the benchmark, login as `gpadmin` on the master node (`mdw`):
 
 ```bash
 ssh gpadmin@mdw
-cd ~/TPC-DS-HashData
+cd ~/TPC-DS-CBDB
 ./run.sh
 ```
 
-By default, it will run a scale 1 (1G) and with 1 concurrent users from data generation to score computation in the background.
-Log will be stored with name `tpcds_<time_stamp>.log` in ~/TPC-DS-HashData.
+By default, this will run a scale 1 (1GB) benchmark with 1 concurrent user, from data generation through to score computation, in the background. Logs will be stored with the name `tpcds_<timestamp>.log` in the `~/TPC-DS-CBDB` directory.
 
 ## Configuration
 
-The benchmark is controlled through `tpcds_variables.sh`. Key configuration sections:
+The benchmark is controlled through the `tpcds_variables.sh` file. Here are the key configuration sections:
 
 ### Environment Options
 ```bash
@@ -140,7 +145,6 @@ The benchmark is controlled through `tpcds_variables.sh`. Key configuration sect
 export ADMIN_USER="gpadmin"
 export BENCH_ROLE="dsbench" 
 export SCHEMA_NAME="tpcds"
-export CHIP_TYPE="x86"      # arm or x86
 export RUN_MODEL="cloud"    # local or cloud
 
 # Remote cluster connection
@@ -168,12 +172,21 @@ export TABLE_ACCESS_METHOD="USING ao_column"  # Available options:
                                        # - heap: Classic row storage
                                        # - ao_row: Append-optimized row storage
                                        # - ao_column: Append-optimized columnar storage
-                                       # - pax: PAX storage format
+                                       # - pax: PAX storage format (Cloudberry 2.0/HashData Lightning only)
 
 export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"  # Compression settings:
                                                                          # - zstd: Best compression ratio
                                                                          # - compresslevel: 1-19 (higher=better compression)
+
+# Table partitioning for 7 large tables:
+# catalog_returns, catalog_sales, inventory, store_returns, store_sales, web_returns, web_sales
+export TABLE_USE_PARTITION="true"
 ```
+
+**Note**: 
+- `TABLE_ACCESS_METHOD`: Default to non-value to be compatible with HashData Cloud and early Greenplum versions. Should be set to `USING ao_column` for Cloudberry or Greenplum. `USING PAX` is available for Cloudberry 2.0 and HashData Lightning.
+- For earlier Greenplum products without `TABLE_ACCESS_METHOD` support, use full options: `appendoptimized=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576`
+- Distribution policies are defined in `TPC-DS-CBDB/03_ddl/distribution.txt`. With products supporting `REPLICATED` policy, 14 tables use `REPLICATED` distribution by default. For early Greenplum products without `REPLICATED` policy support, see `TPC-DS-CBDB/03_ddl/distribution_original.txt`.
 
 ### Step Control Options
 ```bash
@@ -195,63 +208,34 @@ export RUN_MULTI_USER_REPORTS="false"  # Upload multi-user test results
 export RUN_SCORE="false"         # Compute final benchmark score
 ```
 
-There are multiple steps running the benchmark and controlled by these variables:
-- `RUN_COMPILE_TPCDS`: default `true`.
-  It will compile the `dsdgen` and `dsqgen`.
-  Usually we only want to compile those binaries once.
-  In the rerun, just set this value to `false`.
-- `RUN_GEN_DATA`: default `true`.
-  It will use the `dsdgen` compiled above to generate the flat files for the benchmark.
-  The flat files are generated in parallel on all segment nodes.
-  Those files are stored under `${PGDATA}/dsbenchmark` directory.
-  In the rerun, just set this value to `false`.
-- `RUN_INIT`: default `true`.
-  It will setup the GUCs for the Greenplum as well as remember the segment configurations.
-  It's only required if the Greenplum cluster is reconfigured.
-  It can be always `true` to ensure proper Greenplum cluster configuration.
-  In the rerun, just set this value to `false`.
-- `RUN_DDL`: default `true`.
-  It will recreate all the schemas and tables (including external tables for loading).
-  If you want to keep the data and just rerun the queries, please set this value to `false`, otherwise all the existing loaded data will be gone.
-- `RUN_LOAD`: default `true`.
-  It will load data from flat files into tables.
-  After the load, the statistics will be computed in this step.
-  If you just want to rerun the queries, please set this value to `false`.
-- `RUN_SQL`: default `true`.
-  It will run the power test of the benchmark.
-- `RUN_SINGLE_USER_REPORTS`: default `true`.
-  It will upload the results to the Greenplum database `gpadmin` under schema `tpcds_reports`.
-  These tables are required later on in the `RUN_SCORE` step.
-  Recommend to keep it `true` if above step of `RUN_SQL` is `true`.
-- `RUN_MULTI_USER`: default `true`.
-  It will run the throughput run of the benchmark.
-  Before running the queries, multiple streams will be generated by the `dsqgen`.
-  `dsqgen` will sample the database to find proper filters.
-  For very large database and a lot of streams, this process can take a long time (hours) to just generate the queries.
-- `RUN_MULTI_USER_REPORTS`: default `true`.
-  It will upload the results to the Greenplum database `gpadmin` under schema `tpcds_reports`.
-  Recommend to keep it `true` if above step of `RUN_MULTI_USER` is `true`.
-- `RUN_SCORE`: default `true`.
-  It will query the results from `tpcds_reports` and compute the `QphDS` based on supported benchmark standard.
-  Recommend to keep it `true` if you want to see the final score of the run.
+There are multiple steps in running the benchmark, controlled by these variables:
 
-If any above variable is missing or invalid, the script will abort and show the missing or invalid variable name.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `RUN_COMPILE_TPCDS` | `true` | Compiles `dsdgen` and `dsqgen`. Usually only needs to be done once. |
+| `RUN_GEN_DATA` | `true` | Generates flat files for the benchmark in parallel on all segment nodes. Files are stored under `${PGDATA}/dsbenchmark` directory. |
+| `RUN_INIT` | `true` | Sets up GUCs for the database and remembers segment configurations. Only required if the cluster is reconfigured. |
+| `RUN_DDL` | `true` | Recreates all schemas and tables (including external tables for loading). Set to `false` to keep existing data. |
+| `RUN_LOAD` | `true` | Loads data from flat files into tables and computes statistics. |
+| `RUN_SQL` | `true` | Runs the power test of the benchmark. |
+| `RUN_SINGLE_USER_REPORTS` | `true` | Uploads results to the database under schema `tpcds_reports`. Required for the `RUN_SCORE` step. |
+| `RUN_MULTI_USER` | `true` | Runs the throughput test of the benchmark. This generates multiple query streams using `dsqgen`, which samples the database to find proper filters. For very large databases with many streams, this process can take hours just to generate the queries. |
+| `RUN_MULTI_USER_REPORTS` | `true` | Uploads multi-user results to the database. |
+| `RUN_SCORE` | `true` | Computes the final `QphDS` score based on the benchmark standard. |
 
-**WARNING**: Now TPC-DS does not rely on the log folder to run or skip the steps. It will only run the steps that are specified explicitly as `true`  in the `tpcds_variables.sh`. If any necessary step is speficied as `false` but has never been executed before, the script will abort when it tries to access something that does not exist in the database or under the directory.
+**WARNING**: TPC-DS does not rely on the log folder to determine which steps to run or skip. It will only run the steps that are explicitly set to `true` in the `tpcds_variables.sh` file. If any necessary step is set to `false` but has never been executed before, the script will abort when it tries to access data that doesn't exist.
 
 ### Miscellaneous Options
 
 ```bash
 # Misc options
-export SINGLE_USER_ITERATIONS="1"
-export EXPLAIN_ANALYZE="false"
-export RANDOM_DISTRIBUTION="false"
-## Set to on/off to enable vectorization
-export ENABLE_VECTORIZATION="off"
-export STATEMENT_MEM="2GB"
-export STATEMENT_MEM_MULTI_USER="1GB"
-## Set gpfdist location where gpfdist will run p (primary) or m (mirror)
-export GPFDIST_LOCATION="p"
+export SINGLE_USER_ITERATIONS="1"      # Number of times to run power test
+export EXPLAIN_ANALYZE="false"         # Set to true for query plan analysis
+export RANDOM_DISTRIBUTION="false"     # Use random distribution for fact tables
+export ENABLE_VECTORIZATION="off"      # Set to on/off to enable vectorization
+export STATEMENT_MEM="2GB"             # Memory per statement for single user test
+export STATEMENT_MEM_MULTI_USER="1GB"  # Memory per statement for multi-user test
+export GPFDIST_LOCATION="p"            # Where gpfdist will run: p (primary) or m (mirror)
 export OSVERSION=$(uname)
 export ADMIN_USER=$(whoami)
 export ADMIN_HOME=$(eval echo ${HOME}/${ADMIN_USER})
@@ -259,38 +243,14 @@ export MASTER_HOST=$(hostname -s)
 export LD_PRELOAD=/lib64/libz.so.1 ps
 ```
 
-These are miscellaneous controlling variables:
-- `EXPLAIN_ANALYZE`: default `false`.
-  If you set to `true`, you can have the queries execute with `EXPLAIN ANALYZE` in order to see exactly the query plan used, the cost, the memory used, etc.
-  This option is for debugging purpose only, since collecting those query statistics will disturb the benchmark.
-- `RANDOM_DISTRIBUTION`: default `false`.
-  If you set to `true`, the fact tables are distributed randomly other than following a pre-defined distribution column. Random distribution shold be used for Cloud products. 
-  Pre-defined table distribution policies are in: TPC-DS-CBDB/03_ddl/distribution.txt with `REPLICATED` policy supported product, 14 tables are using `REPLICATED` distribution policy by default.  TPC-DS-CBDB/03_ddl/distribution_original.txt are for early Greenplum products without `REPLICATED` policy supported.
-- `SINGLE_USER_ITERATION`: default `1`.
-  This controls how many times the power test will run.
-  During the final score computation, the minimal/fastest query elapsed time of multiple runs will be used.
-  This can be used to ensure the power test is in a `warm` run environment.
-- `STATEMENT_MEM`: default 2GB which set the `statement_mem` parameter for each statement of single user test. Set with `GB` or `MB`. STATEMENT_MEM should be less than gp_vmem_protect_limit.
-- `STATEMENT_MEM_MULTI_USER`: default 1GB which set the `statement_mem` parameter for each statement of multiple user test. Set with `GB` or `MB`. Please note that, `STATEMENT_MEM_MULTI_USER` * `MULTI_USER_COUNT` should be less than `gp_vmem_protect_limit`.
-- `ENABLE_VECTORIZATION`: set to true to enable vectorization computing for better performance. Feature is suppported as of Lightning 1.5.3. Default is false. Only works for AO with column and PAX table type.
+Key options explained:
 
-### Storage Options
-```bash
-# Storage options
-## Support TABLE_ACCESS_METHOD to ao_row / ao_column / heap in both GPDB 7 / CBDB
-## Support TABLE_ACCESS_METHOD to ”PAX“ for PAX table format and remove blocksize option in TABLE_STORAGE_OPTIONS for CBDB 2.0 only.
-## DO NOT set TABLE_ACCESS_METHOD for Cloud
-# export TABLE_ACCESS_METHOD="USING ao_column"
-## Set different storage options for each access method
-## Set to use partitione for following tables:
-## catalog_returns / catalog_sales / inventory / store_returns / store_sales / web_returns / web_sales
-# export TABLE_USE_PARTITION="true"
-## SET TABLE_STORAGE_OPTIONS wiht different options in GP/CBDB/Cloud "appendoptimized=true compresstype=zstd, compresslevel=5, blocksize=1048576"
-export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"
-```
-- `TABLE_ACCESS_METHOD`: Default to non-value to compatible with HashDataCloud and early Greenplum versions, should be set to `USING ao_column` for Cloudbery or Greenplum. `USING PAX` is available for Cloudberry 2.0 and HashData Lightning.
-- `TABLE_USE_PARTITION`: Set this to `true` will use table partitions for 7 large tables, this should improve performance for Cloudberry / Greenplum. All table DDL scripts are localed in TPC-DS-CBDB/03_ddl/. Partition table DDL ends with *.sql.partition.
-- `TABLE_STORAGE_OPTIONS`: if `TABLE_ACCESS_METHOD` are not supported in early Greenplum products, use full options `appendoptimized=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576`
+- `EXPLAIN_ANALYZE`: When set to `true`, executes queries with `EXPLAIN ANALYZE` to see query plans, costs, and memory usage. For debugging only, as it affects benchmark results.
+- `RANDOM_DISTRIBUTION`: When set to `true`, fact tables are distributed randomly rather than using pre-defined distribution columns. Recommended for Cloud products.
+- `SINGLE_USER_ITERATION`: Controls how many times the power test runs. The fastest query time from multiple runs is used for final scoring.
+- `STATEMENT_MEM`: Sets memory per statement for single-user tests (should be less than `gp_vmem_protect_limit`).
+- `STATEMENT_MEM_MULTI_USER`: Sets memory per statement for multi-user tests (note: `STATEMENT_MEM_MULTI_USER` × `MULTI_USER_COUNT` should be less than `gp_vmem_protect_limit`).
+- `ENABLE_VECTORIZATION`: Set to `on` to enable vectorized computing for better performance (supported in Lightning 1.5.3+). Only works with AO column and PAX table formats.
 
 ## Performance Tuning
 
@@ -309,6 +269,7 @@ For optimal performance:
    export TABLE_ACCESS_METHOD="USING ao_column"
    export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=9)"
    export TABLE_USE_PARTITION="true"
+   ```
 
 3. **Concurrency Tuning**
    ```bash
@@ -317,121 +278,52 @@ For optimal performance:
    export MULTI_USER_COUNT="$(( $(nproc) / 2 ))"
    ```
 
+4. **Enable Vectorization** (for supported systems)
+   ```bash
+   export ENABLE_VECTORIZATION="on"
+   ```
+
 ## Benchmark Modifications
 
-### 1. Change to SQL queries that subtracted or added days were modified slightly:
+The TPC-DS queries were modified in the following ways to ensure compatibility:
 
-Old:
+### 1. Date Interval Syntax Changes
+Changed date addition syntax from:
 ```sql
 and (cast('2000-02-28' as date) + 30 days)
 ```
-
-New:
-
+To:
 ```sql
 and (cast('2000-02-28' as date) + '30 days'::interval)
 ```
+Affected queries: 5, 12, 16, 20, 21, 32, 37, 40, 77, 80, 82, 92, 94, 95, and 98.
 
-This was done on queries: 5, 12, 16, 20, 21, 32, 37, 40, 77, 80, 82, 92, 94, 95, and 98.
-
-### 2. Change to queries with ORDER BY on column alias to use sub-select.
-
-Old:
+### 2. ORDER BY Column Alias Fixes
+Added subqueries for ORDER BY clauses with column aliases:
 ```sql
-select  
-    sum(ss_net_profit) as total_sum
-   ,s_state
-   ,s_county
-   ,grouping(s_state)+grouping(s_county) as lochierarchy
-   ,rank() over (
- 	partition by grouping(s_state)+grouping(s_county),
- 	case when grouping(s_county) = 0 then s_state end 
- 	order by sum(ss_net_profit) desc) as rank_within_parent
- from
-    store_sales
-   ,date_dim       d1
-   ,store
- where
-    d1.d_month_seq between 1212 and 1212+11
- and d1.d_date_sk = ss_sold_date_sk
- and s_store_sk  = ss_store_sk
- and s_state in
-             ( select s_state
-               from  (select s_state as s_state,
- 			    rank() over ( partition by s_state order by sum(ss_net_profit) desc) as ranking
-                      from   store_sales, store, date_dim
-                      where  d_month_seq between 1212 and 1212+11
- 			    and d_date_sk = ss_sold_date_sk
- 			    and s_store_sk  = ss_store_sk
-                      group by s_state
-                     ) tmp1 
-               where ranking <= 5
-             )
- group by rollup(s_state,s_county)
- order by
-   lochierarchy desc
+-- New version with subquery
+select * from (
+  -- Original query
+) AS sub
+order by
+  lochierarchy desc
   ,case when lochierarchy = 0 then s_state end
   ,rank_within_parent
- limit 100;
+limit 100;
 ```
+Affected queries: 36 and 70.
 
-New:
-```sql
-select * from ( --new
-select  
-    sum(ss_net_profit) as total_sum
-   ,s_state
-   ,s_county
-   ,grouping(s_state)+grouping(s_county) as lochierarchy
-   ,rank() over (
- 	partition by grouping(s_state)+grouping(s_county),
- 	case when grouping(s_county) = 0 then s_state end 
- 	order by sum(ss_net_profit) desc) as rank_within_parent
- from
-    store_sales
-   ,date_dim       d1
-   ,store
- where
-    d1.d_month_seq between 1212 and 1212+11
- and d1.d_date_sk = ss_sold_date_sk
- and s_store_sk  = ss_store_sk
- and s_state in
-             ( select s_state
-               from  (select s_state as s_state,
- 			    rank() over ( partition by s_state order by sum(ss_net_profit) desc) as ranking
-                      from   store_sales, store, date_dim
-                      where  d_month_seq between 1212 and 1212+11
- 			    and d_date_sk = ss_sold_date_sk
- 			    and s_store_sk  = ss_store_sk
-                      group by s_state
-                     ) tmp1 
-               where ranking <= 5
-             )
- group by rollup(s_state,s_county)
-) AS sub --new
- order by
-   lochierarchy desc
-  ,case when lochierarchy = 0 then s_state end
-  ,rank_within_parent
- limit 100;
-```
+### 3. Column Reference Corrections
+Modified query templates to exclude columns not found in the query, specifically in common table expressions where alias columns were used in dynamic filters.
+Affected query: 86.
 
-This was done on queries: 36 and 70.
+### 4. Table Alias Additions
+Added table aliases to improve query parser compatibility.
+Affected queries: 2, 14, and 23.
 
-### 3. Query templates were modified to exclude columns not found in the query.
-
-In these cases, the common table expression used aliased columns but the dynamic filters included both the alias name as well as the original name.
-Referencing the original column name instead of the alias causes the query parser to not find the column.
-
-This was done on query 86.
-
-### 4. Added table aliases.
-This was done on queries: 2, 14, and 23.
-
-### 5. Added `limit 100` to very large result set queries.
-For the larger tests (e.g. 15TB), a few of the TPC-DS queries can output a very large number of rows which are just discarded.
-
-This was done on queries: 64, 34, and 71.
+### 5. Result Limiting
+Added `LIMIT 100` to queries that could produce very large result sets.
+Affected queries: 64, 34, and 71.
 
 ## Troubleshooting
 
@@ -445,30 +337,31 @@ This was done on queries: 64, 34, and 71.
    - `PSQL_OPTIONS`
 
 2. **Permission Errors**  
-   If you encounter permission errors during installation or execution:
-   - Verify that the `TPC-DS-HashData` folder is owned by `gpadmin`:
-     ```bash
-     chown -R gpadmin.gpadmin /home/gpadmin/TPC-DS-HashData
-     ```
-   - Ensure `gpadmin` has the necessary access to the database and directories.
+   - Verify ownership: `chown -R gpadmin:gpadmin /home/gpadmin/TPC-DS-CBDB`
+   - Ensure `gpadmin` has proper database access permissions
 
-3. **Data Generation Fails**  
-   If data generation fails:
-   - Confirm that `dsdgen` is compiled successfully.
-   - Check the `CLIENT_GEN_PATH` variable to ensure it points to a valid directory.
+3. **Data Generation Failures**  
+   - Confirm successful compilation of `dsdgen`
+   - Verify `CLIENT_GEN_PATH` points to a valid, writable directory
+   - Check available disk space
 
 4. **Query Execution Errors**  
-   If queries fail to execute:
-   - Verify that all required tables and schemas are created by ensuring `RUN_DDL` is set to `true` during the initial run.
-   - Check for syntax errors in modified queries.
+   - Ensure tables and schemas exist (set `RUN_DDL=true` on first run)
+   - Look for syntax errors in modified queries
+   - Verify database connectivity
 
 5. **Performance Issues**  
-   For performance-related concerns:
-   - Adjust `STATEMENT_MEM` and `STATEMENT_MEM_MULTI_USER` based on the available system memory.
-   - Enable vectorization by setting `ENABLE_VECTORIZATION="on"` if supported.
+   - Adjust memory settings based on system resources
+   - Enable vectorization if supported
+   - Use appropriate storage options for your workload
+   - Consider partitioning for large tables
 
-### Additional Resources
-For further assistance, refer to the [TPC-DS Specification](http://www.tpc.org/tpc_documents_current_versions/pdf/tpc-ds_v3.2.0.pdf) or contact the HashData support team.
+### Logs and Diagnostics
+
+For detailed diagnostics, examine:
+- Main log file: `tpcds_<timestamp>.log` in `~/TPC-DS-CBDB`
+- Database server logs
+- System resource utilization during test runs
 
 ## Contributing
 
