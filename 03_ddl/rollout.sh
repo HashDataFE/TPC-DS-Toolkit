@@ -54,6 +54,45 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
     print_log
   done
 
+  #Use partition tables for TPCDS when parameter TABLE_USE_PARTITION is set to true
+  #Check paramter TABLE_USE_PARTITION in tpcds_variables.sh
+  if [ "${TABLE_USE_PARTITION}" == "true" ]; then
+    for i in ${PWD}/*.${filter}.*.partition; do
+      start_log
+      id=$(echo ${i} | awk -F '.' '{print $1}')
+      export id
+      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+      export schema_name
+      table_name=$(echo ${i} | awk -F '.' '{print $3}')
+      export table_name
+
+    if [ "${RANDOM_DISTRIBUTION}" == "true" ]; then
+      DISTRIBUTED_BY="DISTRIBUTED RANDOMLY"
+    else
+      for z in $(cat ${PWD}/${distkeyfile}); do
+        table_name2=$(echo ${z} | awk -F '|' '{print $2}')
+        if [ "${table_name2}" == "${table_name}" ]; then
+          distribution=$(echo ${z} | awk -F '|' '{print $3}')
+        fi
+      done
+      
+      if [ "${distribution^^}" == "REPLICATED" ]; then
+        DISTRIBUTED_BY="DISTRIBUTED REPLICATED"
+      else
+        DISTRIBUTED_BY="DISTRIBUTED BY (${distribution})"
+      fi
+    fi
+
+      #Drop existing partition tables if they exist
+      SQL_QUERY="drop table if exists ${SCHEMA_NAME}.${table_name} cascade"
+      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"
+      
+      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
+      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
+      print_log
+    done
+  fi
+
   #external tables are the same for all gpdb
   get_gpfdist_port
 
@@ -114,14 +153,24 @@ psql ${PSQL_OPTIONS} -tc "select \$\$GRANT ALL PRIVILEGES on table ${SCHEMA_NAME
 start_log
 
 if [ "${BENCH_ROLE}" != "gpadmin" ]; then
-  set +e
-  log_time "Drop role dependencies for ${BENCH_ROLE}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRoleDenp}"
-  set -e
-  log_time "Drop role ${BENCH_ROLE}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRole}"
-  log_time "Creating role ${BENCH_ROLE}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${CreateRole}"
+  # Check if role exists in PostgreSQL
+
+  EXISTS=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT 1 FROM pg_roles WHERE rolname='${BENCH_ROLE}'")
+
+  # Create role if not exists
+  if [ "$EXISTS" != "1" ]; then
+    echo "Role ${BENCH_ROLE} does not exist. Creating..."
+    log_time "Creating role ${BENCH_ROLE}"
+    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${CreateRole}"
+  else
+    set +e
+    log_time "Drop role dependencies for ${BENCH_ROLE}"
+    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRoleDenp}"
+    set -e
+  fi
+  
+  #log_time "Drop role ${BENCH_ROLE}"
+  #psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRole}"
   log_time "Grant schema privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantSchemaPrivileges}"
   log_time "Grant table privileges to role ${BENCH_ROLE}"

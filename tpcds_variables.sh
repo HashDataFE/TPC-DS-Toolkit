@@ -19,6 +19,8 @@ export PSQL_OPTIONS="-h 2f445c57-c838-4038-a410-50ee36f9461d.cloud.hashdata.ai -
 export CLIENT_GEN_PATH="/tmp/dsbenchmark"
 ### How many parallel processes to run on the client to generate data
 export CLIENT_GEN_PARALLEL="2"
+
+## Follwoing variables only take effect when RUN_MODEL is set to "local".
 ### How many parallel processes to run on each segment to generate data in local mode
 export LOCAL_GEN_PARALLEL="1"
 
@@ -61,6 +63,7 @@ export LOAD_PARALLEL="2"
 ## step 05_sql
 export RUN_SQL="true"
 export RUN_ANALYZE="true"
+export RUN_ANALYZE_PARALLEL="5"
 export RUN_QGEN="true"
 ## set wait time between each query execution
 export QUERY_INTERVAL="0"
@@ -100,7 +103,10 @@ export LD_PRELOAD=/lib64/libz.so.1 ps
 ## Support TABLE_ACCESS_METHOD to ao_row / ao_column / heap in both GPDB 7 / CBDB
 ## Support TABLE_ACCESS_METHOD to ”PAX“ for PAX table format and remove blocksize option in TABLE_STORAGE_OPTIONS for CBDB 2.0 only.
 ## DO NOT set TABLE_ACCESS_METHOD for Cloud
-# export TABLE_ACCESS_METHOD="USING PAX"
+# export TABLE_ACCESS_METHOD="USING ao_column"
 ## Set different storage options for each access method
+## Set to use partitione for following tables:
+## catalog_returns / catalog_sales / inventory / store_returns / store_sales / web_returns / web_sales
+# export TABLE_USE_PARTITION="true"
 ## SET TABLE_STORAGE_OPTIONS wiht different options in GP/CBDB/Cloud "appendoptimized=true compresstype=zstd, compresslevel=5, blocksize=1048576"
 export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"
