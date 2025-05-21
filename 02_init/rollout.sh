@@ -134,7 +134,7 @@ if [ "${RUN_MODEL}" != "local" ]; then
 else
   echo "Running in LOCAL mode"
   get_version
-  set_segment_bashrc
+  #set_segment_bashrc
   check_gucs
   copy_config
 fi
