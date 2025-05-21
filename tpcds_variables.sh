@@ -3,9 +3,6 @@ export ADMIN_USER="gpadmin"
 export BENCH_ROLE="dsbench"
 export SCHEMA_NAME="tpcds"
 export GREENPLUM_PATH=$GPHOME/greenplum_path.sh
-## No longer needed, will check automatically 
-## Set chip type to arm or x86 to avoid compiling TPC-DS tools from source code.
-## export CHIP_TYPE="x86"
  
 ## Set to "local" to run the benchmark on the COORDINATOR host or "cloud" to run the benchmark from a remote client.
 export RUN_MODEL="cloud"
@@ -44,8 +41,6 @@ export GEN_NEW_DATA="true"
 
 ## step 02_init
 export RUN_INIT="true"
-## Obsolete GUC settings, will be removed in the future
-export RESET_ENV_ON_SEGMENT='true'
 
 ## step 03_ddl
 # To run another TPC-DS with a different BENCH_ROLE using existing tables and data,
