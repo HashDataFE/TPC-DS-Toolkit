@@ -240,7 +240,6 @@ export OSVERSION=$(uname)
 export ADMIN_USER=$(whoami)
 export ADMIN_HOME=$(eval echo ${HOME}/${ADMIN_USER})
 export MASTER_HOST=$(hostname -s)
-export LD_PRELOAD=/lib64/libz.so.1 ps
 ```
 
 Key options explained:
