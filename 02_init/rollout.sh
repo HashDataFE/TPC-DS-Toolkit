@@ -17,6 +17,7 @@ export table_name
 
 function set_segment_bashrc() {
   #this is only needed if the segment nodes don't have the bashrc file created
+  export LD_PRELOAD=/lib64/libz.so.1 ps
   echo "if [ -f /etc/bashrc ]; then" > ${PWD}/segment_bashrc
   echo "  . /etc/bashrc" >> ${PWD}/segment_bashrc
   echo "fi" >> ${PWD}/segment_bashrc
