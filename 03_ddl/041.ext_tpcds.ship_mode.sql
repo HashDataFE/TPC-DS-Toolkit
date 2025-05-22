@@ -1,3 +1,3 @@
-CREATE EXTERNAL TABLE ext_tpcds.ship_mode (like ${SCHEMA_NAME}.ship_mode) 
+CREATE EXTERNAL TABLE ext_tpcds.ship_mode (like :SCHEMA_NAME.ship_mode) 
 LOCATION (:LOCATION)
 FORMAT 'TEXT' (DELIMITER '|' NULL AS '' ESCAPE AS E'\\');

@@ -1,4 +1,4 @@
-CREATE TABLE ${SCHEMA_NAME}.web_site (
+CREATE TABLE :SCHEMA_NAME.web_site (
     web_site_sk integer NOT NULL,
     web_site_id character varying(16) NOT NULL,
     web_rec_start_date date,

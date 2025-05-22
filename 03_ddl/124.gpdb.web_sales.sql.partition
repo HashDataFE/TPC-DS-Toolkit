@@ -1,4 +1,4 @@
-CREATE TABLE ${SCHEMA_NAME}.web_sales (
+CREATE TABLE :SCHEMA_NAME.web_sales (
     ws_sold_date_sk integer,
     ws_sold_time_sk integer,
     ws_ship_date_sk integer,

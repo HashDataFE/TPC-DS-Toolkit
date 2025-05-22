@@ -1,3 +1,3 @@
-CREATE EXTERNAL TABLE ext_tpcds.inventory (like ${SCHEMA_NAME}.inventory)
+CREATE EXTERNAL TABLE ext_tpcds.inventory (like :SCHEMA_NAME.inventory)
 LOCATION (:LOCATION)
 FORMAT 'TEXT' (DELIMITER '|' NULL AS '' ESCAPE AS E'\\');

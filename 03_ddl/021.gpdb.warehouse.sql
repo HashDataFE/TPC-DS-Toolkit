@@ -1,4 +1,4 @@
-CREATE TABLE ${SCHEMA_NAME}.warehouse (
+CREATE TABLE :SCHEMA_NAME.warehouse (
     w_warehouse_sk integer NOT NULL,
     w_warehouse_id character varying(16) NOT NULL,
     w_warehouse_name character varying(20),

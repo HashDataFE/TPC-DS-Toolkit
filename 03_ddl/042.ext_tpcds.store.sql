@@ -1,3 +1,3 @@
-CREATE EXTERNAL TABLE ext_tpcds.store (like ${SCHEMA_NAME}.store) 
+CREATE EXTERNAL TABLE ext_tpcds.store (like :SCHEMA_NAME.store) 
 LOCATION (:LOCATION)
 FORMAT 'TEXT' (DELIMITER '|' NULL AS '' ESCAPE AS E'\\');

@@ -1,4 +1,4 @@
-CREATE TABLE ${SCHEMA_NAME}.store_returns (
+CREATE TABLE :SCHEMA_NAME.store_returns (
     sr_returned_date_sk integer,
     sr_return_time_sk integer,
     sr_item_sk integer NOT NULL,

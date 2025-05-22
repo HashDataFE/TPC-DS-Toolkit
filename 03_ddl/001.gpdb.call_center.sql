@@ -1,4 +1,4 @@
-CREATE TABLE ${SCHEMA_NAME}.call_center (
+CREATE TABLE :SCHEMA_NAME.call_center (
     cc_call_center_sk integer,
     cc_call_center_id character varying(16),
     cc_rec_start_date date,

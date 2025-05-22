@@ -1,4 +1,4 @@
-CREATE TABLE ${SCHEMA_NAME}.date_dim (
+CREATE TABLE :SCHEMA_NAME.date_dim (
     d_date_sk integer NOT NULL,
     d_date_id character varying(16) NOT NULL,
     d_date date,

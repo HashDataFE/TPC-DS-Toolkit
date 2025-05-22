@@ -1,4 +1,4 @@
-CREATE TABLE ${SCHEMA_NAME}.time_dim (
+CREATE TABLE :SCHEMA_NAME.time_dim (
     t_time_sk integer NOT NULL,
     t_time_id character varying(16) NOT NULL,
     t_time integer,

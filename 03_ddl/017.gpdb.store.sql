@@ -1,4 +1,4 @@
-CREATE TABLE ${SCHEMA_NAME}.store (
+CREATE TABLE :SCHEMA_NAME.store (
     s_store_sk integer NOT NULL,
     s_store_id character varying(16) NOT NULL,
     s_rec_start_date date,
