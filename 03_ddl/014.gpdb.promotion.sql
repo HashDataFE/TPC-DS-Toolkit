@@ -1,4 +1,4 @@
-CREATE TABLE tpcds.promotion (
+CREATE TABLE ${SCHEMA_NAME}.promotion (
     p_promo_sk integer NOT NULL,
     p_promo_id character varying(16) NOT NULL,
     p_start_date_sk integer,

@@ -1,1 +1,1 @@
-INSERT INTO tpcds.store SELECT * FROM ext_tpcds.store;
+INSERT INTO ${SCHEMA_NAME}.store SELECT * FROM ext_tpcds.store;

@@ -1,4 +1,4 @@
-CREATE TABLE tpcds.store_sales (
+CREATE TABLE ${SCHEMA_NAME}.store_sales (
     ss_sold_date_sk integer,
     ss_sold_time_sk integer,
     ss_item_sk int NOT NULL,

@@ -1,3 +1,3 @@
-CREATE EXTERNAL TABLE ext_tpcds.customer (like tpcds.customer)
+CREATE EXTERNAL TABLE ext_tpcds.customer (like ${SCHEMA_NAME}.customer)
 LOCATION (:LOCATION)
 FORMAT 'TEXT' (DELIMITER '|' NULL AS '' ESCAPE AS E'\\') ENCODING 'LATIN1';
