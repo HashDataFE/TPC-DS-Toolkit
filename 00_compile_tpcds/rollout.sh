@@ -36,7 +36,7 @@ function copy_tpc() {
   #copy the compiled dsdgen program to the segment nodes when running in LOCAL mode
   if [ "${RUN_MODEL}" == "local" ]; then
     echo "copy tpcds binaries to segment hosts"
-    echo "RUN_MODEL is not LOCAL, proceeding with copying binaries"
+    echo "RUN_MODEL is LOCAL, proceeding with copying binaries"
     for i in $(cat ${TPC_DS_DIR}/segment_hosts.txt); do
       scp tools/dsdgen tools/tpcds.idx ${i}: &
     done
