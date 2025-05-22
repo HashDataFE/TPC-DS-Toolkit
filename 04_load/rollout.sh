@@ -104,9 +104,9 @@ for i in ${PWD}/*.${filter}.*.sql; do
                 fi
             done
         else
-            log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} | grep INSERT | awk -F ' ' '{print \$3}'"
+            log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} -v SCHEMA_NAME=\"${SCHEMA_NAME}\" | grep INSERT | awk -F ' ' '{print \$3}'"
             tuples=$(
-                psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f "${i}" | grep INSERT | awk -F ' ' '{print $3}'
+                psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f "${i}" -v SCHEMA_NAME="${SCHEMA_NAME}" | grep INSERT | awk -F ' ' '{print $3}'
                 exit ${PIPESTATUS[0]}
             )
         fi
