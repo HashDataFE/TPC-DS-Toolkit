@@ -96,11 +96,11 @@ export MASTER_HOST=$(hostname -s)
 # Storage options
 ## Support TABLE_ACCESS_METHOD as ao_row / ao_column / heap in both GPDB 7 / CBDB
 ## Support TABLE_ACCESS_METHOD as "PAX" for PAX table format and remove blocksize option in TABLE_STORAGE_OPTIONS for CBDB 2.0 only.
-## DO NOT set TABLE_ACCESS_METHOD for Cloud
+## TABLE_ACCESS_METHOD only works for Cloudberry and Greenplum 7.0 or later.
 # export TABLE_ACCESS_METHOD="USING ao_column"
 ## Set different storage options for each access method
 ## Set to use partition for the following tables:
 ## catalog_returns / catalog_sales / inventory / store_returns / store_sales / web_returns / web_sales
 # export TABLE_USE_PARTITION="true"
-## SET TABLE_STORAGE_OPTIONS with different options in GP/CBDB/Cloud "appendoptimized=true compresstype=zstd, compresslevel=5, blocksize=1048576"
+## SET TABLE_STORAGE_OPTIONS with different options in GP/CBDB/Cloud "appendoptimized=true, orientation=column, compresstype=zstd, compresslevel=5, blocksize=1048576"
 export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"
