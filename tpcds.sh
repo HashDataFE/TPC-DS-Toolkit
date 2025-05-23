@@ -28,8 +28,8 @@ print_header
 # Output the version of the database
 get_version
 export DB_VERSION=${VERSION}
-export DB_FULL_VERSION=${FULL_VERSION}
-log_time "Current database running this test is:\n${DB_FULL_VERSION}"
+export DB_VERSION_FULL=${VERSION_FULL}
+log_time "Current database running this test is:\n${DB_VERSION_FULL}"
 
 # run the benchmark
 ./rollout.sh
