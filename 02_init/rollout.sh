@@ -121,12 +121,19 @@ function check_gucs() {
 
 function copy_config() {
   echo "copy config files"
-  if [ "${MASTER_DATA_DIRECTORY}" != "" ]; then
-    cp ${MASTER_DATA_DIRECTORY}/pg_hba.conf ${TPC_DS_DIR}/log/
-    cp ${MASTER_DATA_DIRECTORY}/postgresql.conf ${TPC_DS_DIR}/log/
+  if [ -n "${MASTER_DATA_DIRECTORY}" ]; then
+    cp "${MASTER_DATA_DIRECTORY}/pg_hba.conf" "${TPC_DS_DIR}/log/"
+    cp "${MASTER_DATA_DIRECTORY}/postgresql.conf" "${TPC_DS_DIR}/log/"
+  elif [ -n "${COORDINATOR_DATA_DIRECTORY}" ]; then
+    cp "${COORDINATOR_DATA_DIRECTORY}/pg_hba.conf" "${TPC_DS_DIR}/log/"
+    cp "${COORDINATOR_DATA_DIRECTORY}/postgresql.conf" "${TPC_DS_DIR}/log/"
+  else
+    echo "WARNING: Unable to find master or coordinator data directory."
+    echo "Please check your environment settings (MASTER_DATA_DIRECTORY or COORDINATOR_DATA_DIRECTORY)."
   fi
-  #gp_segment_configuration
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT * FROM gp_segment_configuration" -o ${TPC_DS_DIR}/log/gp_segment_configuration.txt
+
+  # Save segment configuration to log
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT * FROM gp_segment_configuration" -o "${TPC_DS_DIR}/log/gp_segment_configuration.txt"
 }
 
 if [ "${RUN_MODEL}" != "local" ]; then
