@@ -1,4 +1,4 @@
-CREATE TABLE tpcds.inventory (
+CREATE TABLE :DB_SCHEMA_NAME.inventory (
     inv_date_sk integer NOT NULL,
     inv_item_sk integer NOT NULL,
     inv_warehouse_sk integer NOT NULL,

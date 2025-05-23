@@ -1,4 +1,4 @@
-CREATE TABLE tpcds.customer (
+CREATE TABLE :DB_SCHEMA_NAME.customer (
     c_customer_sk integer NOT NULL,
     c_customer_id character varying(16) NOT NULL,
     c_current_cdemo_sk integer,

@@ -10,7 +10,6 @@ printf "\n"
 
 init_log ${step}
 
-get_version
 filter="gpdb"
 
 function copy_script() {
@@ -35,7 +34,7 @@ function start_gpfdist() {
   sleep 1
   get_gpfdist_port
 
-  if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
+  if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ]; then
     SQL_QUERY="select rank() over (partition by g.hostname order by p.fselocation), g.hostname, p.fselocation as path from gp_segment_configuration g join pg_filespace_entry p on g.dbid = p.fsedbid join pg_tablespace t on t.spcfsoid = p.fsefsoid where g.content >= 0 and g.role = '${GPFDIST_LOCATION}' and t.spcname = 'pg_default' order by g.hostname"
   else
     SQL_QUERY="select rank() over(partition by g.hostname order by g.datadir), g.hostname, g.datadir from gp_segment_configuration g where g.content >= 0 and g.role = '${GPFDIST_LOCATION}' order by g.hostname"
@@ -85,17 +84,20 @@ for i in ${PWD}/*.${filter}.*.sql; do
 
         id=$(echo "${i}" | awk -F '.' '{print $1}')
         export id
-        schema_name=$(echo "${i}" | awk -F '.' '{print $2}')
+        schema_name=${DB_SCHEMA_NAME}
+        export schema_name
+        #schema_name=$(echo "${i}" | awk -F '.' '{print $2}')
         table_name=$(echo "${i}" | awk -F '.' '{print $3}')
+        export table_name
 
         if [ "${RUN_MODEL}" == "cloud" ]; then
             GEN_DATA_PATH=${CLIENT_GEN_PATH}
             tuples=0
             for file in ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat; do
                 if [ -e "$file" ]; then
-                    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
+                    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${DB_SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
                     result=$(
-                        psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${SCHEMA_NAME}.${table_name} FROM '$file' WITH DELIMITER '|' NULL AS '' ESCAPE E'\\\\' ENCODING 'LATIN1'" | grep COPY | awk -F ' ' '{print $2}'
+                        psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${DB_SCHEMA_NAME}.${table_name} FROM '$file' WITH DELIMITER '|' NULL AS '' ESCAPE E'\\\\' ENCODING 'LATIN1'" | grep COPY | awk -F ' ' '{print $2}'
                         exit ${PIPESTATUS[0]}
                     )
                     tuples=$((tuples + result))
@@ -104,9 +106,9 @@ for i in ${PWD}/*.${filter}.*.sql; do
                 fi
             done
         else
-            log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} | grep INSERT | awk -F ' ' '{print \$3}'"
+            log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" | grep INSERT | awk -F ' ' '{print \$3}'"
             tuples=$(
-                psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f "${i}" | grep INSERT | awk -F ' ' '{print $3}'
+                psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f "${i}" -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" | grep INSERT | awk -F ' ' '{print $3}'
                 exit ${PIPESTATUS[0]}
             )
         fi

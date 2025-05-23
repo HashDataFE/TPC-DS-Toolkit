@@ -1,4 +1,4 @@
-CREATE TABLE tpcds.customer_address (
+CREATE TABLE :DB_SCHEMA_NAME.customer_address (
     ca_address_sk integer NOT NULL,
     ca_address_id character varying(16) NOT NULL,
     ca_street_number character varying(10),

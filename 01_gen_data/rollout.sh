@@ -41,7 +41,7 @@ function copy_generate_data() {
 }
 
 function gen_data() {
-  get_version
+
   PARALLEL=$(gpstate | grep "Total primary segments" | awk -F '=' '{print $2}')
   if [ "${PARALLEL}" == "" ]; then
     log_time "ERROR: Unable to determine how many primary segments are in the cluster using gpstate."
@@ -54,7 +54,7 @@ function gen_data() {
   log_time "Number of Generate Data Parallel Process is: $PARALLEL"
 
   
-  if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
+  if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ]; then
     SQL_QUERY="select row_number() over(), g.hostname, p.fselocation as path from gp_segment_configuration g join pg_filespace_entry p on g.dbid = p.fsedbid join pg_tablespace t on t.spcfsoid = p.fsefsoid where g.content >= 0 and g.role = '${GPFDIST_LOCATION}' and t.spcname = 'pg_default' order by 1, 2, 3"  
   else
     SQL_QUERY="select row_number() over(), g.hostname, g.datadir from gp_segment_configuration g where g.content >= 0 and g.role = '${GPFDIST_LOCATION}' order by 1, 2, 3"
@@ -93,7 +93,7 @@ printf "\n"
 
 init_log ${step}
 start_log
-schema_name="tpcds"
+schema_name="${DB_VERSION}"
 export schema_name
 table_name="gen_data"
 export table_name
@@ -123,7 +123,6 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
     copy_generate_data
     gen_data
     echo ""
-    log_time "Current database running this test is:\n${VERSION_FULL}"
     get_count_generate_data
     log_time "Now generating data.  This may take a while."
     seconds=0

@@ -10,7 +10,7 @@ printf "\n"
 
 init_log ${step}
 start_log
-schema_name=${SCHEMA_NAME}
+schema_name=${DB_VERSION}
 export schema_name
 table_name="init"
 export table_name
@@ -57,7 +57,7 @@ function set_segment_bashrc() {
 function check_gucs() {
   update_config="0"
 
-  if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
+  if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ]; then
     counter=$(
       psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "show optimizer_join_arity_for_associativity_commutativity" | grep -i "18" | wc -l
       exit ${PIPESTATUS[0]}
@@ -120,13 +120,20 @@ function check_gucs() {
 }
 
 function copy_config() {
-  echo "copy config files"
-  if [ "${MASTER_DATA_DIRECTORY}" != "" ]; then
-    cp ${MASTER_DATA_DIRECTORY}/pg_hba.conf ${TPC_DS_DIR}/log/
-    cp ${MASTER_DATA_DIRECTORY}/postgresql.conf ${TPC_DS_DIR}/log/
+  echo "Copying configuration files..."
+  if [ -n "${MASTER_DATA_DIRECTORY}" ]; then
+    cp "${MASTER_DATA_DIRECTORY}/pg_hba.conf" "${TPC_DS_DIR}/log/pg_hba_${DB_VERSION}.conf"
+    cp "${MASTER_DATA_DIRECTORY}/postgresql.conf" "${TPC_DS_DIR}/log/postgresql.conf_${DB_VERSION}.conf"
+  elif [ -n "${COORDINATOR_DATA_DIRECTORY}" ]; then
+    cp "${COORDINATOR_DATA_DIRECTORY}/pg_hba.conf" "${TPC_DS_DIR}/log/pg_hba_${DB_VERSION}.conf"
+    cp "${COORDINATOR_DATA_DIRECTORY}/postgresql.conf" "${TPC_DS_DIR}/log/postgresql.conf_${DB_VERSION}.conf"
+  else
+    echo "WARNING: Unable to find the master or coordinator data directory."
+    echo "Please check your environment settings (MASTER_DATA_DIRECTORY or COORDINATOR_DATA_DIRECTORY)."
   fi
-  #gp_segment_configuration
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT * FROM gp_segment_configuration" -o ${TPC_DS_DIR}/log/gp_segment_configuration.txt
+
+  # Save segment configuration to log
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT * FROM gp_segment_configuration" -o "${TPC_DS_DIR}/log/gp_segment_configuration_${DB_VERSION}.txt"
 }
 
 if [ "${RUN_MODEL}" != "local" ]; then
@@ -134,7 +141,6 @@ if [ "${RUN_MODEL}" != "local" ]; then
   # Add any specific commands for REMOTE mode here
 else
   echo "Running in LOCAL mode"
-  get_version
   #set_segment_bashrc
   check_gucs
   copy_config

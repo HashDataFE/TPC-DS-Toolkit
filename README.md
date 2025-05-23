@@ -15,22 +15,36 @@ This tool provides:
 - Detailed performance reporting
 
 ## Table of Contents
-- [Quick Start](#quick-start)
-- [Supported TPC-DS Versions](#supported-tpc-ds-versions)
-- [Prerequisites](#prerequisites) 
-- [Installation](#installation)
-- [Usage](#usage)
-- [Configuration](#configuration)
-  - [Environment Options](#environment-options)
-  - [Benchmark Options](#benchmark-options)
-  - [Storage Options](#storage-options)
-  - [Step Control Options](#step-control-options)
-  - [Miscellaneous Options](#miscellaneous-options)
-- [Performance Tuning](#performance-tuning)
-- [Benchmark Modifications](#benchmark-modifications)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
+- [Decision Support Benchmark for HashData Database](#decision-support-benchmark-for-hashdata-database)
+  - [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
+  - [Quick Start](#quick-start)
+  - [Supported TPC-DS Versions](#supported-tpc-ds-versions)
+  - [Prerequisites](#prerequisites)
+    - [Tested Products](#tested-products)
+    - [Local Cluster Setup](#local-cluster-setup)
+    - [Remote Client Setup](#remote-client-setup)
+    - [TPC-DS Tools Dependencies](#tpc-ds-tools-dependencies)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Configuration](#configuration)
+    - [Environment Options](#environment-options)
+    - [Benchmark Options](#benchmark-options)
+    - [Storage Options](#storage-options)
+    - [Step Control Options](#step-control-options)
+    - [Miscellaneous Options](#miscellaneous-options)
+  - [Performance Tuning](#performance-tuning)
+  - [Benchmark Modifications](#benchmark-modifications)
+    - [1. Date Interval Syntax Changes](#1-date-interval-syntax-changes)
+    - [2. ORDER BY Column Alias Fixes](#2-order-by-column-alias-fixes)
+    - [3. Column Reference Corrections](#3-column-reference-corrections)
+    - [4. Table Alias Additions](#4-table-alias-additions)
+    - [5. Result Limiting](#5-result-limiting)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues and Solutions](#common-issues-and-solutions)
+    - [Logs and Diagnostics](#logs-and-diagnostics)
+  - [Contributing](#contributing)
+  - [License](#license)
 
 ## Quick Start
 
@@ -144,8 +158,8 @@ The benchmark is controlled through the `tpcds_variables.sh` file. Here are the 
 # Core settings
 export ADMIN_USER="gpadmin"
 export BENCH_ROLE="dsbench" 
-export SCHEMA_NAME="tpcds"
-export RUN_MODEL="cloud"    # local or cloud
+export DB_SCHEMA_NAME="tpcds"  # Database schema to use for all TPC-DS data tables  
+export RUN_MODEL="cloud"    # "local" or "cloud"
 
 # Remote cluster connection
 export PSQL_OPTIONS="-h <host> -p <port>"
@@ -185,8 +199,9 @@ export TABLE_USE_PARTITION="true"
 
 **Note**: 
 - `TABLE_ACCESS_METHOD`: Default to non-value to be compatible with HashData Cloud and early Greenplum versions. Should be set to `USING ao_column` for Cloudberry or Greenplum. `USING PAX` is available for Cloudberry 2.0 and HashData Lightning.
-- For earlier Greenplum products without `TABLE_ACCESS_METHOD` support, use full options: `appendoptimized=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576`
+- For earlier Greenplum products without `TABLE_ACCESS_METHOD` support, use full options: `appendoptimized=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576` 
 - Distribution policies are defined in `TPC-DS-CBDB/03_ddl/distribution.txt`. With products supporting `REPLICATED` policy, 14 tables use `REPLICATED` distribution by default. For early Greenplum products without `REPLICATED` policy support, see `TPC-DS-CBDB/03_ddl/distribution_original.txt`.
+- Table partition definitions are in `TPC-DS-CBDB/03_ddl/*.sql.partition`. **Note:** When using table partitioning along with column-oriented tables, if the block size is set to a large value, it might cause high memory consumption and result in out-of-memory errors. In that case, reduce the block size or the number of partitions.
 
 ### Step Control Options
 ```bash
@@ -201,27 +216,27 @@ export RUN_DDL="true"            # Create database schemas/tables
 export RUN_LOAD="true"           # Load generated data
 
 # 3. Query execution
-export RUN_SQL="true"            # Run power test queries
-export RUN_SINGLE_USER_REPORTS="true"  # Upload single user test results
-export RUN_MULTI_USER="false"    # Run throughput test queries
-export RUN_MULTI_USER_REPORTS="false"  # Upload multi-user test results
-export RUN_SCORE="false"         # Compute final benchmark score
+export RUN_SQL="true"                 # Run power test queries
+export RUN_SINGLE_USER_REPORTS="true" # Upload single-user test results
+export RUN_MULTI_USER="false"         # Run throughput test queries
+export RUN_MULTI_USER_REPORTS="false" # Upload multi-user test results
+export RUN_SCORE="false"              # Compute final benchmark score
 ```
 
 There are multiple steps in running the benchmark, controlled by these variables:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `RUN_COMPILE_TPCDS` | `true` | Compiles `dsdgen` and `dsqgen`. Usually only needs to be done once. |
-| `RUN_GEN_DATA` | `true` | Generates flat files for the benchmark in parallel on all segment nodes. Files are stored under `${PGDATA}/dsbenchmark` directory. |
-| `RUN_INIT` | `true` | Sets up GUCs for the database and remembers segment configurations. Only required if the cluster is reconfigured. |
-| `RUN_DDL` | `true` | Recreates all schemas and tables (including external tables for loading). Set to `false` to keep existing data. |
-| `RUN_LOAD` | `true` | Loads data from flat files into tables and computes statistics. |
-| `RUN_SQL` | `true` | Runs the power test of the benchmark. |
-| `RUN_SINGLE_USER_REPORTS` | `true` | Uploads results to the database under schema `tpcds_reports`. Required for the `RUN_SCORE` step. |
-| `RUN_MULTI_USER` | `true` | Runs the throughput test of the benchmark. This generates multiple query streams using `dsqgen`, which samples the database to find proper filters. For very large databases with many streams, this process can take hours just to generate the queries. |
-| `RUN_MULTI_USER_REPORTS` | `true` | Uploads multi-user results to the database. |
-| `RUN_SCORE` | `true` | Computes the final `QphDS` score based on the benchmark standard. |
+| Variable                  | Default | Description |
+|---------------------------|---------|-------------|
+| `RUN_COMPILE_TPCDS`       | `true`  | Compiles `dsdgen` and `dsqgen`. Usually only needs to be done once. |
+| `RUN_GEN_DATA`            | `true`  | Generates flat files for the benchmark in parallel on all segment nodes. Files are stored under the `${PGDATA}/dsbenchmark` directory. |
+| `RUN_INIT`                | `true`  | Sets up GUCs for the database and records segment configurations. Only required if the cluster is reconfigured. |
+| `RUN_DDL`                 | `true`  | Recreates all schemas and tables (including external tables for loading). Set to `false` to keep existing data. |
+| `RUN_LOAD`                | `true`  | Loads data from flat files into tables and computes statistics. |
+| `RUN_SQL`                 | `true`  | Runs the power test of the benchmark. |
+| `RUN_SINGLE_USER_REPORTS` | `true`  | Uploads results to the database under the schema `tpcds_reports`. Required for the `RUN_SCORE` step. |
+| `RUN_MULTI_USER`          | `true`  | Runs the throughput test of the benchmark. This generates multiple query streams using `dsqgen`, which samples the database to find proper filters. For very large databases with many streams, this process can take hours just to generate the queries. |
+| `RUN_MULTI_USER_REPORTS`  | `true`  | Uploads multi-user results to the database. |
+| `RUN_SCORE`               | `true`  | Computes the final `QphDS` score based on the benchmark standard. |
 
 **WARNING**: TPC-DS does not rely on the log folder to determine which steps to run or skip. It will only run the steps that are explicitly set to `true` in the `tpcds_variables.sh` file. If any necessary step is set to `false` but has never been executed before, the script will abort when it tries to access data that doesn't exist.
 
@@ -229,11 +244,11 @@ There are multiple steps in running the benchmark, controlled by these variables
 
 ```bash
 # Misc options
-export SINGLE_USER_ITERATIONS="1"      # Number of times to run power test
+export SINGLE_USER_ITERATIONS="1"      # Number of times to run the power test
 export EXPLAIN_ANALYZE="false"         # Set to true for query plan analysis
 export RANDOM_DISTRIBUTION="false"     # Use random distribution for fact tables
 export ENABLE_VECTORIZATION="off"      # Set to on/off to enable vectorization
-export STATEMENT_MEM="2GB"             # Memory per statement for single user test
+export STATEMENT_MEM="2GB"             # Memory per statement for single-user test
 export STATEMENT_MEM_MULTI_USER="1GB"  # Memory per statement for multi-user test
 export GPFDIST_LOCATION="p"            # Where gpfdist will run: p (primary) or m (mirror)
 export OSVERSION=$(uname)

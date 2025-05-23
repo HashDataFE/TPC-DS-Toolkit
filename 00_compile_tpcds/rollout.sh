@@ -9,7 +9,7 @@ printf "\n"
 
 init_log ${step}
 start_log
-schema_name="${SCHEMA_NAME}"
+schema_name="${DB_VERSION}"
 export schema_name
 table_name="compile"
 export table_name

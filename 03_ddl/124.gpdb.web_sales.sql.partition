@@ -1,4 +1,4 @@
-CREATE TABLE tpcds.web_sales (
+CREATE TABLE :DB_SCHEMA_NAME.web_sales (
     ws_sold_date_sk integer,
     ws_sold_time_sk integer,
     ws_ship_date_sk integer,

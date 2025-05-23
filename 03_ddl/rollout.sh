@@ -9,11 +9,10 @@ log_time "Step ${step} started"
 printf "\n"
 
 init_log ${step}
-get_version
 
 filter="gpdb"
 
-if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
+if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ]; then
 
   distkeyfile="distribution_original.txt"
 else
@@ -26,7 +25,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
     start_log
     id=$(echo ${i} | awk -F '.' '{print $1}')
     export id
-    schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+    schema_name=${DB_SCHEMA_NAME}
+    #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
     export schema_name
     table_name=$(echo ${i} | awk -F '.' '{print $3}')
     export table_name
@@ -48,8 +48,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
       fi
     fi
 
-    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
-    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
+    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
+    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
 
     print_log
   done
@@ -61,7 +61,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
       start_log
       id=$(echo ${i} | awk -F '.' '{print $1}')
       export id
-      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+      schema_name=${DB_SCHEMA_NAME}
+      #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
       export schema_name
       table_name=$(echo ${i} | awk -F '.' '{print $3}')
       export table_name
@@ -84,11 +85,11 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
     fi
 
       #Drop existing partition tables if they exist
-      SQL_QUERY="drop table if exists ${SCHEMA_NAME}.${table_name} cascade"
+      SQL_QUERY="drop table if exists ${DB_SCHEMA_NAME}.${table_name} cascade"
       psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"
       
-      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
-      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
+      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
+      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
       print_log
     done
   fi
@@ -102,7 +103,9 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
      start_log
      id=$(echo ${i} | awk -F '.' '{print $1}')
      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+     export schema_name
      table_name=$(echo ${i} | awk -F '.' '{print $3}')
+     export table_name
      counter=0
      
      if [ "${RUN_MODEL}" == "remote" ]; then
@@ -112,7 +115,7 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
        LOCATION+="gpfdist://${EXT_HOST}:${PORT}/${table_name}_[0-9]*_[0-9]*.dat"
        LOCATION+="'"
       else
-        if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
+        if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ]; then
           SQL_QUERY="select rank() over (partition by g.hostname order by p.fselocation), g.hostname from gp_segment_configuration g join pg_filespace_entry p on g.dbid = p.fsedbid join pg_tablespace t on t.spcfsoid where g.content >= 0 and g.role = '${GPFDIST_LOCATION}' and t.spcname = 'pg_default' order by g.hostname"
         else
           SQL_QUERY="select rank() over(partition by g.hostname order by g.datadir), g.hostname from gp_segment_configuration g where g.content >= 0 and g.role = '${GPFDIST_LOCATION}' order by g.hostname"
@@ -134,8 +137,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
           done
           LOCATION+="'"
         fi
-      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v LOCATION=\"${LOCATION}\""
-      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v LOCATION="${LOCATION}"
+      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v LOCATION=\"${LOCATION}\""
+      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v LOCATION="${LOCATION}"
       print_log
     done
   fi
@@ -144,11 +147,11 @@ fi
 DropRoleDenp="drop owned by ${BENCH_ROLE} cascade"
 DropRole="DROP ROLE IF EXISTS ${BENCH_ROLE}"
 CreateRole="CREATE ROLE ${BENCH_ROLE}"
-GrantSchemaPrivileges="GRANT ALL PRIVILEGES ON SCHEMA tpcds TO ${BENCH_ROLE}"
-GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA tpcds TO ${BENCH_ROLE}"
+GrantSchemaPrivileges="GRANT ALL PRIVILEGES ON SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
+GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
 echo "rm -f ${PWD}/GrantTablePrivileges.sql"
 rm -f ${PWD}/GrantTablePrivileges.sql
-psql ${PSQL_OPTIONS} -tc "select \$\$GRANT ALL PRIVILEGES on table ${SCHEMA_NAME}.\$\$||tablename||\$\$ TO ${BENCH_ROLE};\$\$ from pg_tables where schemaname='${SCHEMA_NAME}'" > ${PWD}/GrantTablePrivileges.sql
+psql ${PSQL_OPTIONS} -tc "select \$\$GRANT ALL PRIVILEGES on table ${DB_SCHEMA_NAME}.\$\$||tablename||\$\$ TO ${BENCH_ROLE};\$\$ from pg_tables where schemaname='${DB_SCHEMA_NAME}'" > ${PWD}/GrantTablePrivileges.sql
 
 start_log
 

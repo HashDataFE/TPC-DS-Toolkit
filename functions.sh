@@ -22,7 +22,6 @@ function check_variable() {
 }
 
 function check_variables() {
-  ### Make sure variables file is available
   echo "############################################################################"
   echo "Sourcing ${VARS_FILE}"
   echo "############################################################################"
@@ -34,35 +33,26 @@ function check_variables() {
     exit 1
   fi
 
-  check_variable "ADMIN_USER"
-  check_variable "EXPLAIN_ANALYZE"
-  check_variable "RANDOM_DISTRIBUTION"
-  check_variable "MULTI_USER_COUNT"
-  check_variable "GEN_DATA_SCALE"
-  check_variable "SINGLE_USER_ITERATIONS"
-  check_variable "GPFDIST_LOCATION"
-  #00
-  check_variable "RUN_COMPILE_TPCDS"
-  #01
-  check_variable "RUN_GEN_DATA"
-  #02
-  check_variable "RUN_INIT"
-  #03
-  check_variable "RUN_DDL"
-  #04
-  check_variable "RUN_LOAD"
-  #05
-  check_variable "RUN_SQL"
-  #06
-  check_variable "RUN_SINGLE_USER_REPORTS"
-  #07
-  check_variable "RUN_MULTI_USER"
-  #08
-  check_variable "RUN_MULTI_USER_REPORTS"
-  #09
-  check_variable "RUN_SCORE"
-  #10
-  check_variable "BENCH_ROLE"
+  # Extract all exported variable names from non-commented lines
+  local missing_vars=()
+  local var_names
+  var_names=$(grep -E '^[[:space:]]*export[[:space:]]+' ./${VARS_FILE} | grep -v '^[[:space:]]*#' | awk '{print $2}' | cut -d= -f1)
+
+  for var in $var_names; do
+    if [ "$var" = "PSQL_OPTIONS" ]; then
+      # Allow PSQL_OPTIONS to be empty
+      continue
+    fi
+    if [ -z "${!var}" ]; then
+      echo "ERROR: Variable '$var' is not set or is empty in ${VARS_FILE}."
+      missing_vars+=("$var")
+    fi
+  done
+
+  if [ ${#missing_vars[@]} -ne 0 ]; then
+    echo "The following required variables are missing or empty: ${missing_vars[*]}"
+    exit 1
+  fi
 }
 
 function check_admin_user() {

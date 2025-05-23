@@ -1,4 +1,4 @@
-CREATE TABLE tpcds.catalog_returns (
+CREATE TABLE :DB_SCHEMA_NAME.catalog_returns (
     cr_returned_date_sk integer,
     cr_returned_time_sk integer,
     cr_item_sk integer NOT NULL,
