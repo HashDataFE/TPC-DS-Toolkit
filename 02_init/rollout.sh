@@ -120,15 +120,15 @@ function check_gucs() {
 }
 
 function copy_config() {
-  echo "copy config files"
+  echo "Copying configuration files..."
   if [ -n "${MASTER_DATA_DIRECTORY}" ]; then
-    cp "${MASTER_DATA_DIRECTORY}/pg_hba.conf" "${TPC_DS_DIR}/log/"
-    cp "${MASTER_DATA_DIRECTORY}/postgresql.conf" "${TPC_DS_DIR}/log/"
+    cp "${MASTER_DATA_DIRECTORY}/pg_hba.conf" "${TPC_DS_DIR}/log/pg_hba_${DB_VERSION}.conf"
+    cp "${MASTER_DATA_DIRECTORY}/postgresql.conf" "${TPC_DS_DIR}/log/postgresql.conf_${DB_VERSION}.conf"
   elif [ -n "${COORDINATOR_DATA_DIRECTORY}" ]; then
-    cp "${COORDINATOR_DATA_DIRECTORY}/pg_hba.conf" "${TPC_DS_DIR}/log/"
-    cp "${COORDINATOR_DATA_DIRECTORY}/postgresql.conf" "${TPC_DS_DIR}/log/"
+    cp "${COORDINATOR_DATA_DIRECTORY}/pg_hba.conf" "${TPC_DS_DIR}/log/pg_hba_${DB_VERSION}.conf"
+    cp "${COORDINATOR_DATA_DIRECTORY}/postgresql.conf" "${TPC_DS_DIR}/log/postgresql.conf_${DB_VERSION}.conf"
   else
-    echo "WARNING: Unable to find master or coordinator data directory."
+    echo "WARNING: Unable to find the master or coordinator data directory."
     echo "Please check your environment settings (MASTER_DATA_DIRECTORY or COORDINATOR_DATA_DIRECTORY)."
   fi
 
