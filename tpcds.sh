@@ -27,7 +27,7 @@ check_admin_user
 print_header
 # Output the version of the database
 get_version
-export schema_name=${VERSION}
+export DB_VERSION=${VERSION}
 
 # run the benchmark
 ./rollout.sh

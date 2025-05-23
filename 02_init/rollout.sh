@@ -10,7 +10,7 @@ printf "\n"
 
 init_log ${step}
 start_log
-schema_name=${VERSION}
+schema_name=${DB_VERSION}
 export schema_name
 table_name="init"
 export table_name
