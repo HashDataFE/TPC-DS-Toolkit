@@ -57,7 +57,7 @@ function set_segment_bashrc() {
 function check_gucs() {
   update_config="0"
 
-  if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
+  if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ]; then
     counter=$(
       psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "show optimizer_join_arity_for_associativity_commutativity" | grep -i "18" | wc -l
       exit ${PIPESTATUS[0]}
@@ -134,7 +134,6 @@ if [ "${RUN_MODEL}" != "local" ]; then
   # Add any specific commands for REMOTE mode here
 else
   echo "Running in LOCAL mode"
-  get_version
   #set_segment_bashrc
   check_gucs
   copy_config

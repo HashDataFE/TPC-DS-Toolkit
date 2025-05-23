@@ -28,6 +28,7 @@ print_header
 # Output the version of the database
 get_version
 export DB_VERSION=${VERSION}
+export DB_FULL_VERSION=${FULL_VERSION}
 
 # run the benchmark
 ./rollout.sh

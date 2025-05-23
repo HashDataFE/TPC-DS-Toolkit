@@ -9,8 +9,7 @@ log_time "Step ${step} started"
 printf "\n"
 
 init_log ${step}
-get_version
-log_time "Current database running this test is:\n${VERSION_FULL}"
+log_time "Current database running this test is:\n${DB_VERSION_FULL}"
 
 if [ "${RUN_QGEN}" == true ]; then
   log_time "Generate queries based on scale"
@@ -33,7 +32,7 @@ if [ "${RUN_ANALYZE}" == "true" ]; then
   psql -t -A ${PSQL_OPTIONS} -c "select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${DB_SCHEMA_NAME}';" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c "{}"
   
   #make sure root stats are gathered
-  if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ] || [ "${VERSION}" == "gpdb_6" ]; then
+  if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ] || [ "${DB_VERSION}" == "gpdb_6" ]; then
     SQL_QUERY="select n.nspname, c.relname from pg_class c join pg_namespace n on c.relnamespace = n.oid left outer join (select starelid from pg_statistic group by starelid) s on c.oid = s.starelid join (select tablename from pg_partitions group by tablename) p on p.tablename = c.relname where n.nspname = '${DB_SCHEMA_NAME}' and s.starelid is null order by 1, 2"
   else
     SQL_QUERY="select n.nspname, c.relname from pg_class c join pg_namespace n on c.relnamespace = n.oid left outer join (select starelid from pg_statistic group by starelid) s on c.oid = s.starelid join pg_partitioned_table p on p.partrelid = c.oid where n.nspname = '${DB_SCHEMA_NAME}' and s.starelid is null order by 1, 2"

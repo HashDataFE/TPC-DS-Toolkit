@@ -10,7 +10,6 @@ printf "\n"
 
 init_log ${step}
 
-get_version
 filter="gpdb"
 
 for i in ${PWD}/*.${filter}.*.sql; do

@@ -19,7 +19,7 @@ PWD=$(get_pwd ${BASH_SOURCE[0]})
 get_version
 log_time "Current database running this test is:\n${VERSION_FULL}"
 
-if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
+if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ]; then
 
   distkeyfile="distribution_original.txt"
 else
