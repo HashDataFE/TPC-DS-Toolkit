@@ -93,7 +93,7 @@ printf "\n"
 
 init_log ${step}
 start_log
-schema_name="tpcds"
+schema_name="${VERSION}"
 export schema_name
 table_name="gen_data"
 export table_name

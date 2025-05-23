@@ -25,6 +25,9 @@ check_variables
 check_admin_user
 # Output admin user and multi-user count to standard out
 print_header
+# Output the version of the database
+get_version
+
 
 # run the benchmark
 ./rollout.sh

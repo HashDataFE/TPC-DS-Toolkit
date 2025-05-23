@@ -85,8 +85,11 @@ for i in ${PWD}/*.${filter}.*.sql; do
 
         id=$(echo "${i}" | awk -F '.' '{print $1}')
         export id
-        schema_name=$(echo "${i}" | awk -F '.' '{print $2}')
+        schema_name=${DB_SCHEMA_NAME}
+        export schema_name
+        #schema_name=$(echo "${i}" | awk -F '.' '{print $2}')
         table_name=$(echo "${i}" | awk -F '.' '{print $3}')
+        export table_name
 
         if [ "${RUN_MODEL}" == "cloud" ]; then
             GEN_DATA_PATH=${CLIENT_GEN_PATH}

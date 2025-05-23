@@ -26,7 +26,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
     start_log
     id=$(echo ${i} | awk -F '.' '{print $1}')
     export id
-    schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+    schema_name=${DB_SCHEMA_NAME}
+    #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
     export schema_name
     table_name=$(echo ${i} | awk -F '.' '{print $3}')
     export table_name
@@ -61,7 +62,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
       start_log
       id=$(echo ${i} | awk -F '.' '{print $1}')
       export id
-      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+      schema_name=${DB_SCHEMA_NAME}
+      #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
       export schema_name
       table_name=$(echo ${i} | awk -F '.' '{print $3}')
       export table_name
@@ -102,7 +104,9 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
      start_log
      id=$(echo ${i} | awk -F '.' '{print $1}')
      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+     export schema_name
      table_name=$(echo ${i} | awk -F '.' '{print $3}')
+     export table_name
      counter=0
      
      if [ "${RUN_MODEL}" == "remote" ]; then
