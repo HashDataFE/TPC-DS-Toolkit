@@ -133,7 +133,7 @@ function copy_config() {
   fi
 
   # Save segment configuration to log
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT * FROM gp_segment_configuration" -o "${TPC_DS_DIR}/log/gp_segment_configuration.txt"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT * FROM gp_segment_configuration" -o "${TPC_DS_DIR}/log/gp_segment_configuration_${DB_VERSION}.txt"
 }
 
 if [ "${RUN_MODEL}" != "local" ]; then
