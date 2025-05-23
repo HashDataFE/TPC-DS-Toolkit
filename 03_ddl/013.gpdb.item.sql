@@ -1,4 +1,4 @@
-CREATE TABLE :SCHEMA_NAME.item (
+CREATE TABLE :DB_SCHEMA_NAME.item (
     i_item_sk integer NOT NULL,
     i_item_id character varying(16) NOT NULL,
     i_rec_start_date date,

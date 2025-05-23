@@ -1,4 +1,4 @@
-CREATE TABLE :SCHEMA_NAME.web_page (
+CREATE TABLE :DB_SCHEMA_NAME.web_page (
     wp_web_page_sk integer NOT NULL,
     wp_web_page_id character varying(16) NOT NULL,
     wp_rec_start_date date,

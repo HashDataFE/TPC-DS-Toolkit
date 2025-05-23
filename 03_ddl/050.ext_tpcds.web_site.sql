@@ -1,3 +1,3 @@
-CREATE EXTERNAL TABLE ext_tpcds.web_site (like :SCHEMA_NAME.web_site)
+CREATE EXTERNAL TABLE ext_tpcds.web_site (like :DB_SCHEMA_NAME.web_site)
 LOCATION (:LOCATION)
 FORMAT 'TEXT' (DELIMITER '|' NULL AS '' ESCAPE AS E'\\');

@@ -31,14 +31,14 @@ for z in $(cat ${PWD}/${distkeyfile}); do
   distribution=$(echo ${z} | awk -F '|' '{print $3}')
   if [ "${distribution}" != "REPLICATED" ]; then
     # Check the table distribution situations
-    log_time "Distribution for table ${SCHEMA_NAME}.${table_name}"
+    log_time "Distribution for table ${DB_SCHEMA_NAME}.${table_name}"
     sql=$(cat <<EOF
 WITH segment_counts AS (
     SELECT 
         gp_segment_id,
         COUNT(*) as row_count
     FROM 
-        ${SCHEMA_NAME}.${table_name}
+        ${DB_SCHEMA_NAME}.${table_name}
     GROUP BY gp_segment_id
 )
 SELECT 
@@ -65,10 +65,10 @@ done
 
 log_time "Check the partitions tables are correctly set, should be none rows retures."
 
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(cr_returned_date_sk),min(cr_returned_date_sk) from  ${SCHEMA_NAME}.catalog_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(cs_sold_date_sk),min(cs_sold_date_sk) from  ${SCHEMA_NAME}.catalog_sales_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(inv_date_sk),min(inv_date_sk) from  ${SCHEMA_NAME}.inventory_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(sr_returned_date_sk),min(sr_returned_date_sk) from  ${SCHEMA_NAME}.store_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ss_sold_date_sk),min(ss_sold_date_sk) from  ${SCHEMA_NAME}.store_sales_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(wr_returned_date_sk),min(wr_returned_date_sk)  from  ${SCHEMA_NAME}.web_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ws_sold_date_sk),min(ws_sold_date_sk)  from  ${SCHEMA_NAME}.web_sales_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(cr_returned_date_sk),min(cr_returned_date_sk) from  ${DB_SCHEMA_NAME}.catalog_returns_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(cs_sold_date_sk),min(cs_sold_date_sk) from  ${DB_SCHEMA_NAME}.catalog_sales_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(inv_date_sk),min(inv_date_sk) from  ${DB_SCHEMA_NAME}.inventory_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(sr_returned_date_sk),min(sr_returned_date_sk) from  ${DB_SCHEMA_NAME}.store_returns_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ss_sold_date_sk),min(ss_sold_date_sk) from  ${DB_SCHEMA_NAME}.store_sales_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(wr_returned_date_sk),min(wr_returned_date_sk)  from  ${DB_SCHEMA_NAME}.web_returns_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ws_sold_date_sk),min(ws_sold_date_sk)  from  ${DB_SCHEMA_NAME}.web_sales_1_prt_others;"

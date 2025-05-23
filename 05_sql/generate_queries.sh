@@ -48,7 +48,7 @@ for p in $(seq 1 99); do
   done
 
 	log_time "Creating: ${TPC_DS_DIR}/05_sql/${filename}"
-	printf "set role ${BENCH_ROLE};\nset search_path=${SCHEMA_NAME},public;\n" > ${TPC_DS_DIR}/05_sql/${filename}
+	printf "set role ${BENCH_ROLE};\nset search_path=${DB_SCHEMA_NAME},public;\n" > ${TPC_DS_DIR}/05_sql/${filename}
 
 	for o in $(cat ${TPC_DS_DIR}/01_gen_data/optimizer.txt); do
         q2=$(echo ${o} | awk -F '|' '{print $1}')

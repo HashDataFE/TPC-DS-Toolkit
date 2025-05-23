@@ -1,4 +1,4 @@
-CREATE TABLE :SCHEMA_NAME.catalog_page (
+CREATE TABLE :DB_SCHEMA_NAME.catalog_page (
     cp_catalog_page_sk integer NOT NULL,
     cp_catalog_page_id character varying(16) NOT NULL,
     cp_start_date_sk integer,

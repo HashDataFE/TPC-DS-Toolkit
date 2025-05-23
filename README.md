@@ -158,7 +158,7 @@ The benchmark is controlled through the `tpcds_variables.sh` file. Here are the 
 # Core settings
 export ADMIN_USER="gpadmin"
 export BENCH_ROLE="dsbench" 
-export SCHEMA_NAME="tpcds"  # Database schema to use for all TPC-DS data tables  
+export DB_SCHEMA_NAME="tpcds"  # Database schema to use for all TPC-DS data tables  
 export RUN_MODEL="cloud"    # "local" or "cloud"
 
 # Remote cluster connection

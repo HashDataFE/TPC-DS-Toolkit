@@ -1,4 +1,4 @@
-CREATE TABLE :SCHEMA_NAME.customer_demographics (
+CREATE TABLE :DB_SCHEMA_NAME.customer_demographics (
     cd_demo_sk integer NOT NULL,
     cd_gender character(1),
     cd_marital_status character(1),

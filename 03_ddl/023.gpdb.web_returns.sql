@@ -1,4 +1,4 @@
-CREATE TABLE :SCHEMA_NAME.web_returns (
+CREATE TABLE :DB_SCHEMA_NAME.web_returns (
     wr_returned_date_sk integer,
     wr_returned_time_sk integer,
     wr_item_sk integer NOT NULL,
