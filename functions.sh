@@ -22,7 +22,6 @@ function check_variable() {
 }
 
 function check_variables() {
-  ### Make sure variables file is available
   echo "############################################################################"
   echo "Sourcing ${VARS_FILE}"
   echo "############################################################################"
@@ -40,6 +39,10 @@ function check_variables() {
   var_names=$(grep -E '^[[:space:]]*export[[:space:]]+' ./${VARS_FILE} | grep -v '^[[:space:]]*#' | awk '{print $2}' | cut -d= -f1)
 
   for var in $var_names; do
+    if [ "$var" = "PSQL_OPTIONS" ]; then
+      # Allow PSQL_OPTIONS to be empty
+      continue
+    fi
     if [ -z "${!var}" ]; then
       echo "ERROR: Variable '$var' is not set or is empty in ${VARS_FILE}."
       missing_vars+=("$var")
