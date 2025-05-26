@@ -51,13 +51,13 @@ SELECT
         NULLIF(AVG(row_count) FILTER (WHERE gp_segment_id IS NOT NULL), 0), 
         2
     ) as skew_percent,
-    COUNT(*) as total_segments
+    COUNT(*) as total_segments,
+    SUM(row_count) as total_rows
 FROM 
     segment_counts;
 EOF
     )
     psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${sql}"
-
   fi
 done
 
