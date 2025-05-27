@@ -73,5 +73,5 @@ psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ss_sol
 psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(wr_returned_date_sk),min(wr_returned_date_sk)  from  ${DB_SCHEMA_NAME}.web_returns_1_prt_others;"
 psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ws_sold_date_sk),min(ws_sold_date_sk)  from  ${DB_SCHEMA_NAME}.web_sales_1_prt_others;"
 
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotdschemaname,pg_size_pretty(sum(sotdsize)+sum(sotdtoastsize)+sum(sotdadditionalsize)) from gp_toolkit.gp_size_of_table_disk group by sotdschemaname;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotuschemaname,pg_size_pretty(sum(sotusize)::numeric) from gp_toolkit.gp_size_of_table_uncompressed group by sotuschemaname;"
+#psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotdschemaname,pg_size_pretty(sum(sotdsize)+sum(sotdtoastsize)+sum(sotdadditionalsize)) from gp_toolkit.gp_size_of_table_disk group by sotdschemaname;"
+#psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotuschemaname,pg_size_pretty(sum(sotusize)::numeric) from gp_toolkit.gp_size_of_table_uncompressed group by sotuschemaname;"
