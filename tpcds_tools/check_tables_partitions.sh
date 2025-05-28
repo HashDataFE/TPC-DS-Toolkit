@@ -89,15 +89,16 @@ for entry in "${partition_tables[@]}"; do
   key="${entry##*:}"
   log_time "Checking partition distribution for table ${DB_SCHEMA_NAME}.${tbl}"
 
-  # Get all partition tables for this base table
-  partitions=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT tablename FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}' AND tablename ~ '^${tbl}_[0-9]+_prt_'")
+  # Get all partition tables for this base table - suppress notices
+  partitions=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT tablename FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}' AND tablename ~ '^${tbl}_[0-9]+_prt_'" 2>/dev/null)
 
   row_counts=()
   total_rows=0
   non_empty_partitions=0
 
   for part in $partitions; do
-    row_count=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.\"${part}\";")
+    # Suppress notices for row count queries
+    row_count=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.\"${part}\";" 2>/dev/null)
     # Only include non-zero partitions in statistics
     if [ "$row_count" -gt 0 ]; then
       row_counts+=("$row_count")
@@ -133,7 +134,7 @@ for entry in "${partition_tables[@]}"; do
   # Min/Max for the partition key for the entire table
   log_time "Partition key range for ${tbl}:"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c \
-    "SELECT MIN(${key}) AS min_${key}, MAX(${key}) AS max_${key} FROM ${DB_SCHEMA_NAME}.${tbl};"
+    "SELECT MIN(${key}) AS min_${key}, MAX(${key}) AS max_${key} FROM ${DB_SCHEMA_NAME}.${tbl};" 2>/dev/null
 done
 
 log_time "Checking table sizes and uncompressed sizes for all tables in each schema"
