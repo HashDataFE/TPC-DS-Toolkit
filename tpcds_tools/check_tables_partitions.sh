@@ -25,13 +25,17 @@ else
   distkeyfile="$parent_dir/03_ddl/distribution.txt"
 fi
 
+# Print header for table row counts
+printf "\n       schema.table       |        tuples        \n"
+printf "-------------------------+----------------------\n"
+
 for z in $(cat ${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
-  distribution=$(echo ${z} | awk -F '|' '{print $3}')
-  # Check total rows for all tables
-  log_time "Total rows for table ${DB_SCHEMA_NAME}.${table_name}:"
-  sql="SELECT COUNT(*) AS total_rows FROM ${DB_SCHEMA_NAME}.${table_name};"
-  psql ${PSQL_OPTIONS} -e -v ON_ERROR_STOP=0 -q -P pager=off -c "${sql}"
+  # Get row count for each table
+  row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name};")
+  # Format with thousands separator
+  row_count_fmt=$(printf "%'d" "${row_count}")
+  printf " %-23s | %20s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}"
 done
 
 for i in $parent_dir/03_ddl/*.${filter}.*.partition; do
