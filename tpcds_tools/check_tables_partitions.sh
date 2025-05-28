@@ -122,11 +122,18 @@ for entry in "${partition_tables[@]}"; do
     avg_rows=$((total_rows / non_empty_partitions))
     skew_percent=$(awk "BEGIN {print ((${max_rows} - ${min_rows}) * 100 / ${avg_rows})}")
     
+    # Get others partition row count
+    others_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${tbl}_1_prt_others;")
+    if ! [[ "$others_count" =~ ^[0-9]+$ ]]; then
+        others_count=0
+    fi
+    
     # Summary output
     log_time "Partition summary for ${tbl}:"
     log_time "  Total partitions: $(echo "$partitions" | wc -l)"
     log_time "  Non-empty partitions: ${non_empty_partitions}"
     log_time "  Total rows: $(printf "%'d" ${total_rows})"
+    log_time "  Rows in 'others' partition: $(printf "%'d" ${others_count})"
     log_time "  Row distribution: min=$(printf "%'d" ${min_rows}), max=$(printf "%'d" ${max_rows}), avg=$(printf "%'d" ${avg_rows})"
     log_time "  Skew: ${skew_percent}%"
   else
