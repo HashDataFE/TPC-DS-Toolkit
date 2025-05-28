@@ -33,6 +33,10 @@ for z in $(cat ${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
   # Get row count for each table
   row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name};")
+  # If row_count is empty or not a number, set to 0
+  if ! [[ "$row_count" =~ ^[0-9]+$ ]]; then
+    row_count=0
+  fi
   # Format with thousands separator
   row_count_fmt=$(printf "%'d" "${row_count}")
   printf " %-23s | %20s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}"
