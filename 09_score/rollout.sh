@@ -32,9 +32,21 @@ TPT_2_2_0=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select cast(${Q
 TTT_2_2_0=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select cast(2 as decimal) * cast(${THROUGHPUT_ELAPSED_TIME} as decimal) / cast(3600.0 as decimal)")
 TLD_2_2_0=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select cast(0.01 as decimal) * cast(${S_Q} as decimal) * cast(${LOAD_TIME} as decimal) / cast(3600.0 as decimal)")
 
+# Calculate operands for v3.2.0 of the TPC-DS score
+Q_3_2_0=$((S_Q * 99))
+TPT_3_2_0=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select cast(${QUERIES_TIME} as decimal) * cast(${S_Q} as decimal) / cast(3600.0 as decimal)")
+TTT_3_2_0=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select cast(${THROUGHPUT_ELAPSED_TIME} as decimal) / cast(3600.0 as decimal)")
+TDM_3_2_0=1.0  # Set to 1 as neutral value when data maintenance is not implemented
+TLD_3_2_0=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select cast(${LOAD_TIME} as decimal) / cast(3600.0 as decimal)")
+
 # Calculate scores using aggregation functions in psql ${PSQL_OPTIONS}
 SCORE_1_3_1=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select floor(cast(${Q_1_3_1} as decimal) * cast(${SF} as decimal) / (cast(${TPT_1_3_1} as decimal) + cast(${TTT_1_3_1} as decimal) + cast(${TLD_1_3_1} as decimal)))")
 SCORE_2_2_0=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "select floor(cast(${Q_2_2_0} as decimal) * cast(${SF} as decimal) / exp((ln(cast(${TPT_2_2_0} as decimal)) + ln(cast(${TTT_2_2_0} as decimal)) + ln(cast(${TLD_2_2_0} as decimal))) / cast(3.0 as decimal)))")
+SCORE_3_2_0=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -t -A -c "
+    select floor(
+        cast(${Q_3_2_0} as decimal) * cast(${SF} as decimal) / 
+        exp((ln(cast(${TPT_3_2_0} as decimal)) + ln(cast(${TTT_3_2_0} as decimal)) + ln(cast(${TDM_3_2_0} as decimal)) + ln(cast(${TLD_3_2_0} as decimal))) / cast(4.0 as decimal))
+    )")
 
 printf "Number of Streams (Sq)\t%d\n" "${S_Q}"
 printf "Scale Factor (SF)\t%d\n" "${SF}"
@@ -57,6 +69,14 @@ printf "TPT (hours)\t\t%.3f\n" "${TPT_2_2_0}"
 printf "TTT (hours)\t\t%.3f\n" "${TTT_2_2_0}"
 printf "TLD (hours)\t\t%.3f\n" "${TLD_2_2_0}"
 printf "Score\t\t\t%d\n" "${SCORE_2_2_0}"
+printf "\n"
+printf "TPC-DS v3.2.0 (QphDS@SF = floor(SF * Q / geomean4(TPT, TTT, TDM, TLD)))\n"
+printf "Q (Sq * 99)\t\t%d\n" "${Q_3_2_0}"
+printf "TPT (hours)\t\t%.3f\n" "${TPT_3_2_0}"
+printf "TTT (hours)\t\t%.3f\n" "${TTT_3_2_0}"
+printf "TDM (hours)\t\t%.3f\n" "${TDM_3_2_0}"
+printf "TLD (hours)\t\t%.3f\n" "${TLD_3_2_0}"
+printf "Score\t\t\t%d\n" "${SCORE_3_2_0}"
 
 echo "Finished ${step}"
 log_time "Step ${step} finished"
