@@ -72,18 +72,6 @@ done
 printf "%-40s+%25s-+%s\n" "$(printf '%0.s-' {1..40})" "$(printf '%0.s-' {1..25})" "$(printf '%0.s-' {1..9})"
 printf " %-38s |%24s |%8s\n" "Total Tables: ${total_tables}" "$(printf "%'d" ${total_all_rows})" "-"
 
-for i in $parent_dir/03_ddl/*.${filter}.*.partition; do
-  id=$(echo ${i} | awk -F '.' '{print $1}')
-  export id
-  schema_name=${DB_SCHEMA_NAME}
-  # schema_name=$(echo ${i} | awk -F '.' '{print $2}')
-  table_name=$(echo ${i} | awk -F '.' '{print $3}')
-
-  # Drop existing partition tables if they exist
-  SQL_QUERY="SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"
-done
-
 # Check that the partition tables are correctly set; there should be no rows returned.
 log_time "Checking that the partition tables are correctly set; there should be no rows returned."
 
