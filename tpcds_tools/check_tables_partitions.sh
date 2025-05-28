@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# To run this script, please source tpcds_variables.sh and functions.sh.
+# To run this script, source tpcds_variables.sh and functions.sh.
 
 VARS_FILE="tpcds_variables.sh"
 FUNCTIONS_FILE="functions.sh"
 
 current_dir=$(pwd)
 parent_dir="${current_dir%/*}"
-echo "Parent Directory: $parent_dir"
+echo "Parent directory: $parent_dir"
 
 # shellcheck source=tpcds_variables.sh
 source $parent_dir/${VARS_FILE}
@@ -30,38 +30,32 @@ for z in $(cat ${distkeyfile}); do
   distribution=$(echo ${z} | awk -F '|' '{print $3}')
   # Check total rows for all tables
   log_time "Total rows for table ${DB_SCHEMA_NAME}.${table_name}:"
-  sql=$(SELECT COUNT(*) as total_rows FROM ${DB_SCHEMA_NAME}.${table_name};)
+  sql=$(SELECT COUNT(*) AS total_rows FROM ${DB_SCHEMA_NAME}.${table_name};)
   psql ${PSQL_OPTIONS} -e -v ON_ERROR_STOP=0 -q -P pager=off -c "${sql}"
 done
-
 
 for i in $parent_dir/03_ddl/*.${filter}.*.partition; do
   id=$(echo ${i} | awk -F '.' '{print $1}')
   export id
   schema_name=${DB_SCHEMA_NAME}
-  #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+  # schema_name=$(echo ${i} | awk -F '.' '{print $2}')
   table_name=$(echo ${i} | awk -F '.' '{print $3}')
 
-  #Drop existing partition tables if they exist
-  SQL_QUERY="select count(*) from ${DB_SCHEMA_NAME}.${table_name}"
+  # Drop existing partition tables if they exist
+  SQL_QUERY="SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"
 done
 
-
 # Check that the partition tables are correctly set; there should be no rows returned.
-
 log_time "Checking that the partition tables are correctly set; there should be no rows returned."
 
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(cr_returned_date_sk),min(cr_returned_date_sk) from  ${DB_SCHEMA_NAME}.catalog_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(cs_sold_date_sk),min(cs_sold_date_sk) from  ${DB_SCHEMA_NAME}.catalog_sales_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(inv_date_sk),min(inv_date_sk) from  ${DB_SCHEMA_NAME}.inventory_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(sr_returned_date_sk),min(sr_returned_date_sk) from  ${DB_SCHEMA_NAME}.store_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ss_sold_date_sk),min(ss_sold_date_sk) from  ${DB_SCHEMA_NAME}.store_sales_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(wr_returned_date_sk),min(wr_returned_date_sk)  from  ${DB_SCHEMA_NAME}.web_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ws_sold_date_sk),min(ws_sold_date_sk)  from  ${DB_SCHEMA_NAME}.web_sales_1_prt_others;"
-
-#psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotdschemaname,pg_size_pretty(sum(sotdsize)+sum(sotdtoastsize)+sum(sotdadditionalsize)) from gp_toolkit.gp_size_of_table_disk group by sotdschemaname;"
-#psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotuschemaname,pg_size_pretty(sum(sotusize)::numeric) from gp_toolkit.gp_size_of_table_uncompressed group by sotuschemaname;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(cr_returned_date_sk), MIN(cr_returned_date_sk) FROM ${DB_SCHEMA_NAME}.catalog_returns_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(cs_sold_date_sk), MIN(cs_sold_date_sk) FROM ${DB_SCHEMA_NAME}.catalog_sales_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(inv_date_sk), MIN(inv_date_sk) FROM ${DB_SCHEMA_NAME}.inventory_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(sr_returned_date_sk), MIN(sr_returned_date_sk) FROM ${DB_SCHEMA_NAME}.store_returns_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(ss_sold_date_sk), MIN(ss_sold_date_sk) FROM ${DB_SCHEMA_NAME}.store_sales_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(wr_returned_date_sk), MIN(wr_returned_date_sk) FROM ${DB_SCHEMA_NAME}.web_returns_1_prt_others;"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(ws_sold_date_sk), MIN(ws_sold_date_sk) FROM ${DB_SCHEMA_NAME}.web_sales_1_prt_others;"
 
 # List of partitioned tables and their partition key columns
 partition_tables=(
@@ -108,7 +102,7 @@ for entry in "${partition_tables[@]}"; do
     log_time "No partitions found for table ${tbl}"
   fi
 
-  # Min/max for the partition key for the entire table
+  # Min/Max for the partition key for the entire table
   log_time "Min/Max for partition key in table ${DB_SCHEMA_NAME}.${tbl}:"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c \
     "SELECT MIN(${key}) AS min_${key}, MAX(${key}) AS max_${key} FROM ${DB_SCHEMA_NAME}.${tbl};"
