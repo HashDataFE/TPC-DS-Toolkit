@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# To run this shell, please source tpcds_variables.sh and functions.sh.
+# To run this script, please source tpcds_variables.sh and functions.sh.
 
 VARS_FILE="tpcds_variables.sh"
 FUNCTIONS_FILE="functions.sh"
@@ -20,50 +20,23 @@ get_version
 log_time "Current database running this test is:\n${VERSION_FULL}"
 
 if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ]; then
-
-  distkeyfile="distribution_original.txt"
+  distkeyfile="$parent_dir/03_ddl/distribution_original.txt"
 else
-  distkeyfile="distribution.txt"
+  distkeyfile="$parent_dir/03_ddl/distribution.txt"
 fi
 
 for z in $(cat ${PWD}/${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
   distribution=$(echo ${z} | awk -F '|' '{print $3}')
-  if [ "${distribution}" != "REPLICATED" ]; then
-    # Check the table distribution situations
-    log_time "Distribution for table ${DB_SCHEMA_NAME}.${table_name}"
-    sql=$(cat <<EOF
-WITH segment_counts AS (
-    SELECT 
-        gp_segment_id,
-        COUNT(*) as row_count
-    FROM 
-        ${DB_SCHEMA_NAME}.${table_name}
-    GROUP BY gp_segment_id
-)
-SELECT 
-    MAX(row_count) FILTER (WHERE gp_segment_id IS NOT NULL) as max_rows,
-    MIN(row_count) FILTER (WHERE gp_segment_id IS NOT NULL) as min_rows,
-    ROUND(AVG(row_count) FILTER (WHERE gp_segment_id IS NOT NULL), 0) as avg_rows,
-    ROUND(
-        (MAX(row_count) FILTER (WHERE gp_segment_id IS NOT NULL) - 
-         MIN(row_count) FILTER (WHERE gp_segment_id IS NOT NULL)) * 100.0 / 
-        NULLIF(AVG(row_count) FILTER (WHERE gp_segment_id IS NOT NULL), 0), 
-        2
-    ) as skew_percent,
-    COUNT(*) as total_segments,
-    SUM(row_count) as total_rows
-FROM 
-    segment_counts;
-EOF
-    )
-    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${sql}"
-  fi
+  # Check total rows for all tables
+  log_time "Total rows for table ${DB_SCHEMA_NAME}.${table_name}:"
+  sql=$(SELECT COUNT(*) as total_rows FROM ${DB_SCHEMA_NAME}.${table_name};)
+  psql ${PSQL_OPTIONS} -e -v ON_ERROR_STOP=0 -q -P pager=off -c "${sql}"
 done
 
-# Check the partitions tables are correctly set, should be none rows retures.
+# Check that the partition tables are correctly set; there should be no rows returned.
 
-log_time "Check the partitions tables are correctly set, should be none rows retures."
+log_time "Checking that the partition tables are correctly set; there should be no rows returned."
 
 psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(cr_returned_date_sk),min(cr_returned_date_sk) from  ${DB_SCHEMA_NAME}.catalog_returns_1_prt_others;"
 psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(cs_sold_date_sk),min(cs_sold_date_sk) from  ${DB_SCHEMA_NAME}.catalog_sales_1_prt_others;"
