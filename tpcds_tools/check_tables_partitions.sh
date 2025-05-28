@@ -72,16 +72,6 @@ done
 printf "%s+%s+%s\n" "$(printf '%0.s-' {1..60})" "$(printf '%0.s-' {1..25})" "$(printf '%0.s-' {1..9})"
 printf "%-60s|%25s |%8s\n" "Total Tables: ${total_tables}" "$(printf "%'d" ${total_all_rows})" "-"
 
-# Check that the partition tables are correctly set; there should be no rows returned.
-log_time "Checking that the partition tables are correctly set; there should be no rows returned."
-
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(cr_returned_date_sk), MIN(cr_returned_date_sk) FROM ${DB_SCHEMA_NAME}.catalog_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(cs_sold_date_sk), MIN(cs_sold_date_sk) FROM ${DB_SCHEMA_NAME}.catalog_sales_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(inv_date_sk), MIN(inv_date_sk) FROM ${DB_SCHEMA_NAME}.inventory_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(sr_returned_date_sk), MIN(sr_returned_date_sk) FROM ${DB_SCHEMA_NAME}.store_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(ss_sold_date_sk), MIN(ss_sold_date_sk) FROM ${DB_SCHEMA_NAME}.store_sales_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(wr_returned_date_sk), MIN(wr_returned_date_sk) FROM ${DB_SCHEMA_NAME}.web_returns_1_prt_others;"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "SELECT MAX(ws_sold_date_sk), MIN(ws_sold_date_sk) FROM ${DB_SCHEMA_NAME}.web_sales_1_prt_others;"
 
 # List of partitioned tables and their partition key columns
 partition_tables=(
