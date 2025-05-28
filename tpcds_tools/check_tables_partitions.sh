@@ -34,6 +34,20 @@ for z in $(cat ${distkeyfile}); do
   psql ${PSQL_OPTIONS} -e -v ON_ERROR_STOP=0 -q -P pager=off -c "${sql}"
 done
 
+
+for i in $parent_dir/03_ddl/*.${filter}.*.partition; do
+  id=$(echo ${i} | awk -F '.' '{print $1}')
+  export id
+  schema_name=${DB_SCHEMA_NAME}
+  #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
+  table_name=$(echo ${i} | awk -F '.' '{print $3}')
+
+  #Drop existing partition tables if they exist
+  SQL_QUERY="select count(*) from ${DB_SCHEMA_NAME}.${table_name}"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"
+done
+
+
 # Check that the partition tables are correctly set; there should be no rows returned.
 
 log_time "Checking that the partition tables are correctly set; there should be no rows returned."
@@ -48,3 +62,54 @@ psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select max(ws_sol
 
 #psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotdschemaname,pg_size_pretty(sum(sotdsize)+sum(sotdtoastsize)+sum(sotdadditionalsize)) from gp_toolkit.gp_size_of_table_disk group by sotdschemaname;"
 #psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotuschemaname,pg_size_pretty(sum(sotusize)::numeric) from gp_toolkit.gp_size_of_table_uncompressed group by sotuschemaname;"
+
+# List of partitioned tables and their partition key columns
+partition_tables=(
+  "catalog_returns:cr_returned_date_sk"
+  "catalog_sales:cs_sold_date_sk"
+  "inventory:inv_date_sk"
+  "store_returns:sr_returned_date_sk"
+  "store_sales:ss_sold_date_sk"
+  "web_returns:wr_returned_date_sk"
+  "web_sales:ws_sold_date_sk"
+)
+
+for entry in "${partition_tables[@]}"; do
+  tbl="${entry%%:*}"
+  key="${entry##*:}"
+  log_time "Checking partition row distribution for table ${DB_SCHEMA_NAME}.${tbl}"
+
+  # Get all partition tables for this base table
+  partitions=$(psql ${PSQL_OPTIONS} -At -c "SELECT tablename FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}' AND tablename ~ '^${tbl}_[0-9]+_prt_'")
+
+  row_counts=()
+  total_rows=0
+
+  for part in $partitions; do
+    row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.\"${part}\";")
+    log_time "Partition: ${part}, Rows: ${row_count}"
+    row_counts+=("$row_count")
+    total_rows=$((total_rows + row_count))
+  done
+
+  if [ "${#row_counts[@]}" -gt 0 ]; then
+    min_rows=$(printf "%s\n" "${row_counts[@]}" | sort -n | head -1)
+    max_rows=$(printf "%s\n" "${row_counts[@]}" | sort -n | tail -1)
+    sum_rows=0
+    for n in "${row_counts[@]}"; do sum_rows=$((sum_rows + n)); done
+    avg_rows=$((sum_rows / ${#row_counts[@]}))
+    if [ "$avg_rows" -ne 0 ]; then
+      skew_percent=$(awk "BEGIN {print ((${max_rows} - ${min_rows}) * 100 / ${avg_rows})}")
+    else
+      skew_percent=0
+    fi
+    log_time "Partition row count stats for ${tbl}: min=${min_rows}, max=${max_rows}, avg=${avg_rows}, skew=${skew_percent}%"
+  else
+    log_time "No partitions found for table ${tbl}"
+  fi
+
+  # Min/max for the partition key for the entire table
+  log_time "Min/Max for partition key in table ${DB_SCHEMA_NAME}.${tbl}:"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c \
+    "SELECT MIN(${key}) AS min_${key}, MAX(${key}) AS max_${key} FROM ${DB_SCHEMA_NAME}.${tbl};"
+done
