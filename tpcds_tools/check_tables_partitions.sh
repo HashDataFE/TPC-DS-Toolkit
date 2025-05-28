@@ -25,13 +25,22 @@ else
   distkeyfile="$parent_dir/03_ddl/distribution.txt"
 fi
 
+# Initialize counters for summary
+total_tables=0
+total_all_rows=0
+
 # Print header for table row counts
-printf "\n********************************************************************************\n"
-printf "%-40s|%25s |%9s\n" "table_name" "tuples" "seconds"
+printf "\n%-40s|%25s |%9s\n" "table_name" "tuples" "seconds"
 printf "%-40s+%25s-+%s\n" "$(printf '%0.s-' {1..40})" "$(printf '%0.s-' {1..25})" "$(printf '%0.s-' {1..9})"
 
 for z in $(cat ${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
+  
+  # Verify if table_name is empty
+  if [ -z "${table_name}" ]; then
+    log_time "Warning: Skipping empty table name in distribution file"
+    continue
+  fi
   
   # Get start time
   start_time=$(date +%s)
@@ -48,12 +57,20 @@ for z in $(cat ${distkeyfile}); do
     row_count=0
   fi
   
+  # Update counters
+  total_tables=$((total_tables + 1))
+  total_all_rows=$((total_all_rows + row_count))
+  
   # Format with thousands separator
   row_count_fmt=$(printf "%'d" "${row_count}")
   
   # Print with proper alignment
-  printf " %-39s |%24s |%8s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}" "${duration}"
+  printf " %-38s |%24s |%8s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}" "${duration}"
 done
+
+# Print summary after all tables
+printf "%-40s+%25s-+%s\n" "$(printf '%0.s-' {1..40})" "$(printf '%0.s-' {1..25})" "$(printf '%0.s-' {1..9})"
+printf " %-38s |%24s |%8s\n" "Total Tables: ${total_tables}" "$(printf "%'d" ${total_all_rows})" "-"
 
 for i in $parent_dir/03_ddl/*.${filter}.*.partition; do
   id=$(echo ${i} | awk -F '.' '{print $1}')
