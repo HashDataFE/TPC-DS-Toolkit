@@ -26,20 +26,32 @@ else
 fi
 
 # Print header for table row counts
-printf "\n       schema.table       |        tuples        \n"
-printf "-------------------------+----------------------\n"
+printf "\n%-24s|%22s |%9s\n" "table_name" "tuples" "seconds"
+printf "%-24s+%22s-+%s\n" $(printf '%0.s-' {1..24}) $(printf '%0.s-' {1..22}) "$(printf '%0.s-' {1..9})"
 
 for z in $(cat ${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
+  
+  # Get start time
+  start_time=$(date +%s)
+  
   # Get row count for each table
   row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name};")
+  
+  # Get end time and calculate duration
+  end_time=$(date +%s)
+  duration=$((end_time - start_time))
+  
   # If row_count is empty or not a number, set to 0
   if ! [[ "$row_count" =~ ^[0-9]+$ ]]; then
     row_count=0
   fi
+  
   # Format with thousands separator
   row_count_fmt=$(printf "%'d" "${row_count}")
-  printf " %-23s | %20s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}"
+  
+  # Print table name with schema, row count, and duration
+  printf " %-23s |%21s |%8s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}" "${duration}"
 done
 
 for i in $parent_dir/03_ddl/*.${filter}.*.partition; do
