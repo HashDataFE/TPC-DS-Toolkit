@@ -46,7 +46,7 @@ for z in $(cat ${distkeyfile}); do
   start_time=$(date +%s)
   
   # Get row count for each table
-  row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name};")
+  row_count=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name};")
   
   # Get end time and calculate duration
   end_time=$(date +%s)
@@ -90,14 +90,14 @@ for entry in "${partition_tables[@]}"; do
   log_time "Checking partition distribution for table ${DB_SCHEMA_NAME}.${tbl}"
 
   # Get all partition tables for this base table
-  partitions=$(psql ${PSQL_OPTIONS} -At -c "SELECT tablename FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}' AND tablename ~ '^${tbl}_[0-9]+_prt_'")
+  partitions=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT tablename FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}' AND tablename ~ '^${tbl}_[0-9]+_prt_'")
 
   row_counts=()
   total_rows=0
   non_empty_partitions=0
 
   for part in $partitions; do
-    row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.\"${part}\";")
+    row_count=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.\"${part}\";")
     # Only include non-zero partitions in statistics
     if [ "$row_count" -gt 0 ]; then
       row_counts+=("$row_count")
@@ -113,7 +113,7 @@ for entry in "${partition_tables[@]}"; do
     skew_percent=$(awk "BEGIN {print ((${max_rows} - ${min_rows}) * 100 / ${avg_rows})}")
     
     # Get others partition row count
-    others_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${tbl}_1_prt_others;")
+    others_count=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${tbl}_1_prt_others;")
     if ! [[ "$others_count" =~ ^[0-9]+$ ]]; then
         others_count=0
     fi
