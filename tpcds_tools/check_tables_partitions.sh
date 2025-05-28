@@ -30,7 +30,7 @@ for z in $(cat ${distkeyfile}); do
   distribution=$(echo ${z} | awk -F '|' '{print $3}')
   # Check total rows for all tables
   log_time "Total rows for table ${DB_SCHEMA_NAME}.${table_name}:"
-  sql=$(SELECT COUNT(*) AS total_rows FROM ${DB_SCHEMA_NAME}.${table_name};)
+  sql="SELECT COUNT(*) AS total_rows FROM ${DB_SCHEMA_NAME}.${table_name};"
   psql ${PSQL_OPTIONS} -e -v ON_ERROR_STOP=0 -q -P pager=off -c "${sql}"
 done
 
