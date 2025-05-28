@@ -30,8 +30,8 @@ total_tables=0
 total_all_rows=0
 
 # Print header for table row counts with left-aligned headers
-printf "\n %-43s |  %-22s |  %-7s\n" "table_name" "tuples" "seconds"
-printf "%-44s-+%24s-+%s\n" "$(printf '%0.s-' {1..44})" "$(printf '%0.s-' {1..24})" "$(printf '%0.s-' {1..9})"
+printf "\n%-60s|%25s |%9s\n" "table_name" "tuples" "seconds"
+printf "%s+%s+%s\n" "$(printf '%0.s-' {1..60})" "$(printf '%0.s-' {1..25})" "$(printf '%0.s-' {1..9})"
 
 for z in $(cat ${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
@@ -61,16 +61,16 @@ for z in $(cat ${distkeyfile}); do
   total_tables=$((total_tables + 1))
   total_all_rows=$((total_all_rows + row_count))
   
-  # Format with thousands separator
+  # Format row count with thousands separator
   row_count_fmt=$(printf "%'d" "${row_count}")
   
-  # Print data rows - keep numbers right-aligned
-  printf " %-43s |%24s |%8s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}" "${duration}"
+  # Print data rows with fixed width and alignment
+  printf "%-60s|%25s |%8d\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}" "${duration}"
 done
 
-# Print summary line
-printf "%-44s-+%24s-+%s\n" "$(printf '%0.s-' {1..44})" "$(printf '%0.s-' {1..24})" "$(printf '%0.s-' {1..9})"
-printf " %-43s |%24s |%8s\n" "Total Tables: ${total_tables}" "$(printf "%'d" ${total_all_rows})" "-"
+# Print summary line with matching alignment
+printf "%s+%s+%s\n" "$(printf '%0.s-' {1..60})" "$(printf '%0.s-' {1..25})" "$(printf '%0.s-' {1..9})"
+printf "%-60s|%25s |%8s\n" "Total Tables: ${total_tables}" "$(printf "%'d" ${total_all_rows})" "-"
 
 # Check that the partition tables are correctly set; there should be no rows returned.
 log_time "Checking that the partition tables are correctly set; there should be no rows returned."
