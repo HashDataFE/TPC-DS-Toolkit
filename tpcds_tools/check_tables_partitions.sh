@@ -97,39 +97,44 @@ partition_tables=(
 for entry in "${partition_tables[@]}"; do
   tbl="${entry%%:*}"
   key="${entry##*:}"
-  log_time "Checking partition row distribution for table ${DB_SCHEMA_NAME}.${tbl}"
+  log_time "Checking partition distribution for table ${DB_SCHEMA_NAME}.${tbl}"
 
   # Get all partition tables for this base table
   partitions=$(psql ${PSQL_OPTIONS} -At -c "SELECT tablename FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}' AND tablename ~ '^${tbl}_[0-9]+_prt_'")
 
   row_counts=()
   total_rows=0
+  non_empty_partitions=0
 
   for part in $partitions; do
     row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.\"${part}\";")
-    log_time "Partition: ${part}, Rows: ${row_count}"
-    row_counts+=("$row_count")
-    total_rows=$((total_rows + row_count))
+    # Only include non-zero partitions in statistics
+    if [ "$row_count" -gt 0 ]; then
+      row_counts+=("$row_count")
+      total_rows=$((total_rows + row_count))
+      non_empty_partitions=$((non_empty_partitions + 1))
+    fi
   done
 
   if [ "${#row_counts[@]}" -gt 0 ]; then
     min_rows=$(printf "%s\n" "${row_counts[@]}" | sort -n | head -1)
     max_rows=$(printf "%s\n" "${row_counts[@]}" | sort -n | tail -1)
-    sum_rows=0
-    for n in "${row_counts[@]}"; do sum_rows=$((sum_rows + n)); done
-    avg_rows=$((sum_rows / ${#row_counts[@]}))
-    if [ "$avg_rows" -ne 0 ]; then
-      skew_percent=$(awk "BEGIN {print ((${max_rows} - ${min_rows}) * 100 / ${avg_rows})}")
-    else
-      skew_percent=0
-    fi
-    log_time "Partition row count stats for ${tbl}: min=${min_rows}, max=${max_rows}, avg=${avg_rows}, skew=${skew_percent}%"
+    avg_rows=$((total_rows / non_empty_partitions))
+    skew_percent=$(awk "BEGIN {print ((${max_rows} - ${min_rows}) * 100 / ${avg_rows})}")
+    
+    # Summary output
+    log_time "Partition summary for ${tbl}:"
+    log_time "  Total partitions: $(echo "$partitions" | wc -l)"
+    log_time "  Non-empty partitions: ${non_empty_partitions}"
+    log_time "  Total rows: $(printf "%'d" ${total_rows})"
+    log_time "  Row distribution: min=$(printf "%'d" ${min_rows}), max=$(printf "%'d" ${max_rows}), avg=$(printf "%'d" ${avg_rows})"
+    log_time "  Skew: ${skew_percent}%"
   else
-    log_time "No partitions found for table ${tbl}"
+    log_time "No data found in any partition for table ${tbl}"
   fi
 
   # Min/Max for the partition key for the entire table
-  log_time "Min/Max for partition key in table ${DB_SCHEMA_NAME}.${tbl}:"
+  log_time "Partition key range for ${tbl}:"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c \
     "SELECT MIN(${key}) AS min_${key}, MAX(${key}) AS max_${key} FROM ${DB_SCHEMA_NAME}.${tbl};"
 done
