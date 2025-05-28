@@ -133,3 +133,7 @@ for entry in "${partition_tables[@]}"; do
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c \
     "SELECT MIN(${key}) AS min_${key}, MAX(${key}) AS max_${key} FROM ${DB_SCHEMA_NAME}.${tbl};"
 done
+
+log_time "Checking table sizes and uncompressed sizes for all tables in each schema"
+#psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotdschemaname,pg_size_pretty(sum(sotdsize)+sum(sotdtoastsize)+sum(sotdadditionalsize)) from gp_toolkit.gp_size_of_table_disk group by sotdschemaname;"
+#psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -e -P pager=off -c "select sotuschemaname,pg_size_pretty(sum(sotusize)::numeric) from gp_toolkit.gp_size_of_table_uncompressed group by sotuschemaname;"
