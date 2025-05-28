@@ -26,8 +26,9 @@ else
 fi
 
 # Print header for table row counts
-printf "\n%-24s|%22s |%9s\n" "table_name" "tuples" "seconds"
-printf "%-24s+%22s-+%s\n" $(printf '%0.s-' {1..24}) $(printf '%0.s-' {1..22}) "$(printf '%0.s-' {1..9})"
+printf "\n********************************************************************************\n"
+printf "%-40s|%25s |%9s\n" "table_name" "tuples" "seconds"
+printf "%-40s+%25s-+%s\n" "$(printf '%0.s-' {1..40})" "$(printf '%0.s-' {1..25})" "$(printf '%0.s-' {1..9})"
 
 for z in $(cat ${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
@@ -50,8 +51,8 @@ for z in $(cat ${distkeyfile}); do
   # Format with thousands separator
   row_count_fmt=$(printf "%'d" "${row_count}")
   
-  # Print table name with schema, row count, and duration
-  printf " %-23s |%21s |%8s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}" "${duration}"
+  # Print with proper alignment
+  printf " %-39s |%24s |%8s\n" "${DB_SCHEMA_NAME}.${table_name}" "${row_count_fmt}" "${duration}"
 done
 
 for i in $parent_dir/03_ddl/*.${filter}.*.partition; do
