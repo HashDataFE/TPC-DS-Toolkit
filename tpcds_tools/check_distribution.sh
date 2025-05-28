@@ -26,7 +26,7 @@ else
   distkeyfile="$parent_dir/03_ddl/distribution.txt"
 fi
 
-for z in $(cat ${PWD}/${distkeyfile}); do
+for z in $(cat ${distkeyfile}); do
   table_name=$(echo ${z} | awk -F '|' '{print $2}')
   distribution=$(echo ${z} | awk -F '|' '{print $3}')
   if [ "${distribution}" != "REPLICATED" ]; then
