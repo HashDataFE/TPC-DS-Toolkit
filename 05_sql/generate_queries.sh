@@ -20,13 +20,13 @@ LOG_FILE="${TPC_DS_DIR}/log/rollout_load.log"
 # Handle RNGSEED configuration
 if [ "${UNIFY_QGEN_SEED}" == "true" ]; then
   # Use a fixed RNGSEED when unified seed is enabled
-  RNGSEED=2025052910
+  RNGSEED=2016032410
 else 
   # Get RNGSEED from log file or use default
   if [[ -f "$LOG_FILE" ]]; then
     RNGSEED=$(tail -n 1 "$LOG_FILE" | cut -d '|' -f 6)
   else
-    RNGSEED=2025052910
+    RNGSEED=2016032410
   fi
 fi
 
