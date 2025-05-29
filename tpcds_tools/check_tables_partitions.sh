@@ -46,7 +46,7 @@ for z in $(cat ${distkeyfile}); do
   start_time=$(date +%s)
   
   # Get row count for each table
-  row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name};")
+  row_count=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${table_name};")
   
   # Get end time and calculate duration
   end_time=$(date +%s)
@@ -89,15 +89,16 @@ for entry in "${partition_tables[@]}"; do
   key="${entry##*:}"
   log_time "Checking partition distribution for table ${DB_SCHEMA_NAME}.${tbl}"
 
-  # Get all partition tables for this base table
-  partitions=$(psql ${PSQL_OPTIONS} -At -c "SELECT tablename FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}' AND tablename ~ '^${tbl}_[0-9]+_prt_'")
+  # Get all partition tables for this base table - suppress all notices
+  partitions=$(psql ${PSQL_OPTIONS} -At -q -X -c "SET client_min_messages TO WARNING; SELECT tablename FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}' AND tablename ~ '^${tbl}_[0-9]+_prt_'" 2>/dev/null)
 
   row_counts=()
   total_rows=0
   non_empty_partitions=0
 
   for part in $partitions; do
-    row_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.\"${part}\";")
+    # Suppress all notices for row count queries
+    row_count=$(psql ${PSQL_OPTIONS} -At -q -X -c "SET client_min_messages TO WARNING; SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.\"${part}\";" 2>/dev/null)
     # Only include non-zero partitions in statistics
     if [ "$row_count" -gt 0 ]; then
       row_counts+=("$row_count")
@@ -113,7 +114,7 @@ for entry in "${partition_tables[@]}"; do
     skew_percent=$(awk "BEGIN {print ((${max_rows} - ${min_rows}) * 100 / ${avg_rows})}")
     
     # Get others partition row count
-    others_count=$(psql ${PSQL_OPTIONS} -At -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${tbl}_1_prt_others;")
+    others_count=$(psql ${PSQL_OPTIONS} -At -q -c "SELECT COUNT(*) FROM ${DB_SCHEMA_NAME}.${tbl}_1_prt_others;")
     if ! [[ "$others_count" =~ ^[0-9]+$ ]]; then
         others_count=0
     fi
@@ -130,10 +131,11 @@ for entry in "${partition_tables[@]}"; do
     log_time "No data found in any partition for table ${tbl}"
   fi
 
-  # Min/Max for the partition key for the entire table
+  # Min/Max for the partition key for the entire table with notices suppressed
   log_time "Partition key range for ${tbl}:"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c \
-    "SELECT MIN(${key}) AS min_${key}, MAX(${key}) AS max_${key} FROM ${DB_SCHEMA_NAME}.${tbl};"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -X -P pager=off -c \
+    "SET client_min_messages TO WARNING; SELECT MIN(${key}) AS min_${key}, MAX(${key}) AS max_${key} FROM ${DB_SCHEMA_NAME}.${tbl};" 2>/dev/null
+
 done
 
 log_time "Checking table sizes and uncompressed sizes for all tables in each schema"
