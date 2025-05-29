@@ -172,8 +172,6 @@ if [ "${BENCH_ROLE}" != "gpadmin" ]; then
     set -e
   fi
   
-  #log_time "Drop role ${BENCH_ROLE}"
-  #psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRole}"
   log_time "Grant schema privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantSchemaPrivileges}"
   log_time "Grant table privileges to role ${BENCH_ROLE}"
@@ -181,9 +179,6 @@ if [ "${BENCH_ROLE}" != "gpadmin" ]; then
   log_time "Grant table privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -f ${PWD}/GrantTablePrivileges.sql
 fi
-
-log_time "Set search_path for database gpadmin"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${SetSearchPath}"
 
 print_log
 
