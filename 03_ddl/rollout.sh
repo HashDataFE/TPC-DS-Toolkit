@@ -151,7 +151,7 @@ GrantSchemaPrivileges="GRANT ALL PRIVILEGES ON SCHEMA ${DB_SCHEMA_NAME} TO ${BEN
 GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
 echo "rm -f ${PWD}/GrantTablePrivileges.sql"
 rm -f ${PWD}/GrantTablePrivileges.sql
-psql ${PSQL_OPTIONS} -tc "select \$\$GRANT ALL PRIVILEGES on table ${DB_SCHEMA_NAME}.\$\$||tablename||\$\$ TO ${BENCH_ROLE};\$\$ from pg_tables where schemaname='${DB_SCHEMA_NAME}'" > ${PWD}/GrantTablePrivileges.sql
+psql ${PSQL_OPTIONS} -tc "SELECT format('GRANT ALL PRIVILEGES ON TABLE %I.%I TO %I;', '${DB_SCHEMA_NAME}', tablename, '${BENCH_ROLE}') FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}'" > ${PWD}/GrantTablePrivileges.sql
 
 start_log
 
@@ -176,6 +176,8 @@ if [ "${BENCH_ROLE}" != "gpadmin" ]; then
   #psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${DropRole}"
   log_time "Grant schema privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantSchemaPrivileges}"
+  log_time "Grant table privileges to role ${BENCH_ROLE}"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantTablePrivileges}"
   log_time "Grant table privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -f ${PWD}/GrantTablePrivileges.sql
 fi
