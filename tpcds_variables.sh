@@ -95,6 +95,7 @@ export OSVERSION=$(uname)
 export ADMIN_USER=$(whoami)
 export ADMIN_HOME=$(eval echo ${HOME}/${ADMIN_USER})
 export MASTER_HOST=$(hostname -s)
+export DB_SCHEMA_NAME="$(echo "${DB_SCHEMA_NAME}" | tr '[:upper:]' '[:lower:]')"
 
 # Storage options
 ## Support TABLE_ACCESS_METHOD as ao_row / ao_column / heap in both GPDB 7 / CBDB
