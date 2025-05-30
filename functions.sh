@@ -149,35 +149,6 @@ function get_version() {
         ELSE 'unknown'
     END FROM version();") 
   VERSION_FULL=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "SELECT version();")
-
-  #TABLE_ACCESS_METHOD=${TABLE_ACCESS_METHOD}
-  #TABLE_STORAGE_OPTIONS=${TABLE_STORAGE_OPTIONS}
-
-  if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
-    #TABLE_ACCESS_METHOD=""
-    #TABLE_STORAGE_OPTIONS="appendonly=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=32768"
-  elif [ "${VERSION}" == "gpdb_6" ]; then
-    #TABLE_ACCESS_METHOD=""
-    #TABLE_STORAGE_OPTIONS="appendonly=true, orientation=column, compresstype=zstd, compresslevel=9, blocksize=32768"
-  elif [ "${VERSION}" == "gpdb_7" ]; then
-    #TABLE_ACCESS_METHOD="ao_column"
-    #TABLE_STORAGE_OPTIONS="compression=zstd, compression_level=9"
-  elif [ "${VERSION}" == "postgresql" ]; then
-    # Standard PostgreSQL storage options
-    #TABLE_ACCESS_METHOD=""
-    #TABLE_STORAGE_OPTIONS=""
-  elif [ "${VERSION}" == "lightning" ]; then
-    # HashData Lightning specific storage options
-    #TABLE_ACCESS_METHOD="ao_column"
-    #TABLE_STORAGE_OPTIONS="compression=zstd, compression_level=9"
-  else
-    # Default for Cloudberry and other versions
-    #TABLE_ACCESS_METHOD=""
-    #TABLE_STORAGE_OPTIONS="appendonly=true, orientation=column, compresstype=zstd, compresslevel=5, blocksize=32768"
-  fi
-
-  #export TABLE_ACCESS_METHOD
-  #export TABLE_STORAGE_OPTIONS
 }
 export -f get_version
 
