@@ -82,6 +82,7 @@ for p in $(seq 1 99); do
   # Check database if postgresql then comment out optimizer settings
   if [ "${DB_VERSION}" == "postgresql" ]; then
     sed -i 's/^set optimizer=.*/-- &/' "${TPC_DS_DIR}/05_sql/${filename}"
+    sed -i 's/^set statement_mem=.*/-- &/' "${TPC_DS_DIR}/05_sql/${filename}"
   fi
   
   query_id=$((query_id + 1))

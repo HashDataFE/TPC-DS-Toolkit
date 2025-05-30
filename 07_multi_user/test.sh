@@ -61,6 +61,7 @@ function generate_queries() {
     # Check database if postgresql then comment out optimizer settings
     if [ "${DB_VERSION}" == "postgresql" ]; then
       sed -i 's/^set optimizer=.*/-- &/' "${sql_dir}/${filename}"
+      sed -i 's/^set statement_mem=.*/-- &/' "${sql_dir}/${filename}"
     fi
 
     query_id=$((query_id + 1))
