@@ -78,6 +78,11 @@ for p in $(seq 1 99); do
   # Add EXPLAIN ANALYZE and query content
   printf ":EXPLAIN_ANALYZE\n" >> ${TPC_DS_DIR}/05_sql/${filename}
   sed -n ${start_position},${end_position}p ${PWD}/query_0.sql >> ${TPC_DS_DIR}/05_sql/${filename}
+
+  # Check database if postgresql then comment out optimizer settings
+  if [ "${DB_VERSION}" == "postgresql" ]; then
+    sed -i 's/^set optimizer=.*/-- &/' "${TPC_DS_DIR}/05_sql/${filename}"
+  fi
   
   query_id=$((query_id + 1))
   file_id=$((file_id + 1))
