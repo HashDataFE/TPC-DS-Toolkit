@@ -131,7 +131,8 @@ function get_gpfdist_port() {
 export -f get_gpfdist_port
 
 function get_version() {
-  #need to call source_bashrc first
+  # Note: Call source_bashrc first to ensure environment is set up
+
   VERSION=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "
     SELECT 
       CASE 
@@ -142,12 +143,15 @@ function get_version() {
         WHEN POSITION('Cloudberry' IN version) > 0 AND 
              POSITION('Lightning' IN version) > 0 THEN 'lightning'
         WHEN POSITION('Cloudberry' IN version) > 0 THEN 'cbdb'
-        WHEN POSITION('PostgreSQL') > 0 AND 
-             POSITION('Greenplum') = 0 AND 
-             POSITION('Cloudberry') = 0 AND
-             POSITION('Lightning') = 0 THEN 'postgresql'
+        WHEN POSITION('PostgreSQL' IN version) > 0 AND 
+             POSITION('Greenplum' IN version) = 0 AND 
+             POSITION('Cloudberry' IN version) = 0 AND
+             POSITION('Lightning' IN version) = 0 THEN 'postgresql'
         ELSE 'unknown'
-    END FROM version();") 
+      END 
+    FROM version();
+  ")
+
   VERSION_FULL=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "SELECT version();")
 }
 export -f get_version
