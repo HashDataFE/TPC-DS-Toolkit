@@ -48,6 +48,10 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
       fi
     fi
 
+    if [ "${DB_VERSION}" == "postgresql" ]; then
+      DISTRIBUTED_BY=""
+    fi
+
     log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
     psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
 
