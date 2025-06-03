@@ -131,23 +131,28 @@ function get_gpfdist_port() {
 export -f get_gpfdist_port
 
 function get_version() {
-  #need to call source_bashrc first
-  VERSION=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "SELECT CASE WHEN POSITION ('Greenplum Database 4.3' IN version) > 0 THEN 'gpdb_4_3' WHEN POSITION ('Greenplum Database 5' IN version) > 0 THEN 'gpdb_5' WHEN POSITION ('Greenplum Database 6' IN version) > 0 THEN 'gpdb_6' WHEN POSITION ('Greenplum Database 7' IN version) > 0 THEN 'gpdb_7' WHEN POSITION ('Cloudberry' IN version) > 0 THEN 'cbdb' ELSE 'postgresql' END FROM version();") 
+  # Note: Call source_bashrc first to ensure environment is set up
+
+  VERSION=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "
+    SELECT 
+      CASE 
+        WHEN POSITION('Greenplum Database 4.3' IN version) > 0 THEN 'gpdb_4_3'
+        WHEN POSITION('Greenplum Database 5' IN version) > 0 THEN 'gpdb_5'
+        WHEN POSITION('Greenplum Database 6' IN version) > 0 THEN 'gpdb_6'
+        WHEN POSITION('Greenplum Database 7' IN version) > 0 THEN 'gpdb_7'
+        WHEN POSITION('Cloudberry' IN version) > 0 AND 
+             POSITION('Lightning' IN version) > 0 THEN 'lightning'
+        WHEN POSITION('Cloudberry' IN version) > 0 THEN 'cbdb'
+        WHEN POSITION('PostgreSQL' IN version) > 0 AND 
+             POSITION('Greenplum' IN version) = 0 AND 
+             POSITION('Cloudberry' IN version) = 0 AND
+             POSITION('Lightning' IN version) = 0 THEN 'postgresql'
+        ELSE 'unknown'
+      END 
+    FROM version();
+  ")
+
   VERSION_FULL=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "SELECT version();")
-
-  if [ "${VERSION}" == "gpdb_4_3" ] || [ "${VERSION}" == "gpdb_5" ]; then
-    SMALL_STORAGE="appendonly=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576"
-    MEDIUM_STORAGE="appendonly=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576"
-    LARGE_STORAGE="appendonly=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576"
-  else
-    SMALL_STORAGE="appendonly=true, orientation=column, compresstype=zstd, compresslevel=5, blocksize=1048576"
-    MEDIUM_STORAGE="appendonly=true, orientation=column, compresstype=zstd, compresslevel=5, blocksize=1048576"
-    LARGE_STORAGE="appendonly=true, orientation=column, compresstype=zstd, compresslevel=5, blocksize=1048576"
-  fi
-
-  export SMALL_STORAGE
-  export MEDIUM_STORAGE
-  export LARGE_STORAGE
 }
 export -f get_version
 

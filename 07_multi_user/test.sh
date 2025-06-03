@@ -57,6 +57,13 @@ function generate_queries() {
 
     echo "sed -n ${start_position},${end_position}p ${sql_dir}/${tpcds_query_name} >> ${sql_dir}/${filename}"
     sed -n ${start_position},${end_position}p ${sql_dir}/${tpcds_query_name} >> ${sql_dir}/${filename}
+
+    # Check database if postgresql then comment out optimizer settings
+    if [ "${DB_VERSION}" == "postgresql" ]; then
+      sed -i 's/^set optimizer=.*/-- &/' "${sql_dir}/${filename}"
+      sed -i 's/^set statement_mem=.*/-- &/' "${sql_dir}/${filename}"
+    fi
+
     query_id=$((query_id + 1))
     echo "Completed: ${sql_dir}/${filename}"
   done
