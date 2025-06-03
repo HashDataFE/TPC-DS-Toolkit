@@ -3,7 +3,7 @@
 [![TPC-DS](https://img.shields.io/badge/TPC--DS-v3.2.0-blue)](http://www.tpc.org/tpcds/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
 
-A comprehensive tool for running TPC-DS benchmarks on Cloudberry / HashData / Greenplum clusters. Originally derived from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
+A comprehensive tool for running TPC-DS benchmarks on Cloudberry / HashData / Greenplum / PostgreSQL. Originally derived from [Pivotal TPC-DS](https://github.com/pivotal/TPC-DS).
 
 ## Overview
 
@@ -79,6 +79,7 @@ This tool is built with shell scripts and has been tested primarily on CentOS-ba
 - Cloudberry 1.x / Cloudberry 2.X
 - HashData Enterprise / HashData Lightning
 - Greenplum 4.x / Greenplum 5.x / Greenplum 6.x / Greenplum 7.x
+- PostgreSQL 17.X
 
 ### Local Cluster Setup
 For running tests on the coordinator host:
