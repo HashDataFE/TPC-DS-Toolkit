@@ -50,8 +50,8 @@ This tool provides:
 
 ```bash
 # 1. Clone the repository
-git clone git@github.com:HashDataFE/TPC-DS-CBDB.git
-cd TPC-DS-CBDB
+git clone git@github.com:HashDataFE/TPC-DS-Toolkit.git
+cd TPC-DS-Toolkit
 
 # 2. Configure your environment
 cp tpcds_variables.sh.template tpcds_variables.sh
@@ -129,13 +129,13 @@ Simply clone the repository with Git or download the source code from GitHub:
 
 ```bash
 ssh gpadmin@mdw
-git clone git@github.com:HashDataFE/TPC-DS-CBDB.git
+git clone git@github.com:HashDataFE/TPC-DS-Toolkit.git
 ```
 
 Place the folder under `/home/gpadmin/` and change ownership to gpadmin:
 
 ```bash
-chown -R gpadmin:gpadmin TPC-DS-CBDB
+chown -R gpadmin:gpadmin TPC-DS-Toolkit
 ```
 
 ## Usage
@@ -144,11 +144,11 @@ To run the benchmark, login as `gpadmin` on the master node (`mdw`):
 
 ```bash
 ssh gpadmin@mdw
-cd ~/TPC-DS-CBDB
+cd ~/TPC-DS-Toolkit
 ./run.sh
 ```
 
-By default, this will run a scale 1 (1GB) benchmark with 1 concurrent user, from data generation through to score computation, in the background. Logs will be stored with the name `tpcds_<timestamp>.log` in the `~/TPC-DS-CBDB` directory.
+By default, this will run a scale 1 (1GB) benchmark with 1 concurrent user, from data generation through to score computation, in the background. Logs will be stored with the name `tpcds_<timestamp>.log` in the `~/TPC-DS-Toolkit` directory.
 
 ## Configuration
 
@@ -201,8 +201,8 @@ export TABLE_USE_PARTITION="true"
 **Note**: 
 - `TABLE_ACCESS_METHOD`: Default to non-value to be compatible with HashData Cloud and early Greenplum versions. Should be set to `USING ao_column` for Cloudberry or Greenplum. `USING PAX` is available for Cloudberry 2.0 and HashData Lightning.
 - For earlier Greenplum products without `TABLE_ACCESS_METHOD` support, use full options: `appendoptimized=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576` 
-- Distribution policies are defined in `TPC-DS-CBDB/03_ddl/distribution.txt`. With products supporting `REPLICATED` policy, 14 tables use `REPLICATED` distribution by default. For early Greenplum products without `REPLICATED` policy support, see `TPC-DS-CBDB/03_ddl/distribution_original.txt`.
-- Table partition definitions are in `TPC-DS-CBDB/03_ddl/*.sql.partition`. **Note:** When using table partitioning along with column-oriented tables, if the block size is set to a large value, it might cause high memory consumption and result in out-of-memory errors. In that case, reduce the block size or the number of partitions.
+- Distribution policies are defined in `TPC-DS-Toolkit/03_ddl/distribution.txt`. With products supporting `REPLICATED` policy, 14 tables use `REPLICATED` distribution by default. For early Greenplum products without `REPLICATED` policy support, see `TPC-DS-Toolkit/03_ddl/distribution_original.txt`.
+- Table partition definitions are in `TPC-DS-Toolkit/03_ddl/*.sql.partition`. **Note:** When using table partitioning along with column-oriented tables, if the block size is set to a large value, it might cause high memory consumption and result in out-of-memory errors. In that case, reduce the block size or the number of partitions.
 
 ### Step Control Options
 ```bash
@@ -352,7 +352,7 @@ Affected queries: 64, 34, and 71.
    - `PSQL_OPTIONS`
 
 2. **Permission Errors**  
-   - Verify ownership: `chown -R gpadmin:gpadmin /home/gpadmin/TPC-DS-CBDB`
+   - Verify ownership: `chown -R gpadmin:gpadmin /home/gpadmin/TPC-DS-Toolkit`
    - Ensure `gpadmin` has proper database access permissions
 
 3. **Data Generation Failures**  
@@ -374,7 +374,7 @@ Affected queries: 64, 34, and 71.
 ### Logs and Diagnostics
 
 For detailed diagnostics, examine:
-- Main log file: `tpcds_<timestamp>.log` in `~/TPC-DS-CBDB`
+- Main log file: `tpcds_<timestamp>.log` in `~/TPC-DS-Toolkit`
 - Database server logs
 - System resource utilization during test runs
 
