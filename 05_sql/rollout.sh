@@ -27,8 +27,8 @@ export table_name
 if [ "${RUN_ANALYZE}" == "true" ]; then
 
   log_time "Analyze tables started:"
-  log_time "psql -t -A ${PSQL_OPTIONS} -c \"select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${DB_SCHEMA_NAME}';\" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c \"{}\""
-  psql -t -A ${PSQL_OPTIONS} -c "select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${DB_SCHEMA_NAME}';" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c "{}"
+  log_time "psql -t -A ${PSQL_OPTIONS} -c \"select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${DB_SCHEMA_NAME}' and tablename NOT like '%prt%';\" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c \"{}\""
+  psql -t -A ${PSQL_OPTIONS} -c "select 'analyze ' ||schemaname||'.'||tablename||';' from pg_tables WHERE schemaname = '${DB_SCHEMA_NAME}' and tablename NOT like '%prt%';" |xargs -I {} -P ${RUN_ANALYZE_PARALLEL} psql -a -A ${PSQL_OPTIONS} -c "{}"
   
   #make sure root stats are gathered
   if [ "${DB_VERSION}" == "gpdb_4_3" ] || [ "${DB_VERSION}" == "gpdb_5" ] || [ "${DB_VERSION}" == "gpdb_6" ]; then
