@@ -10,6 +10,15 @@ if [ "${GEN_DATA_SCALE}" == "" ]; then
   exit 1
 fi
 
+# Handle RNGSEED configuration
+if [ "${UNIFY_QGEN_SEED}" == "true" ]; then
+  # Use a fixed RNGSEED when unified seed is enabled
+  RNGSEED=2016032410
+else 
+  # Get a random RNGSEED from current time
+  RNGSEED=$(date +%s)
+fi
+
 function get_count_generate_data() {
   count="0"
   while read -r i; do
@@ -78,8 +87,8 @@ function gen_data() {
 
     for ((j=1; j<=LOCAL_GEN_PARALLEL; j++)); do
       GEN_DATA_PATH="${SEG_DATA_PATH}/dsbenchmark/${CHILD}"
-      log_time "ssh -n ${EXT_HOST} \"bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'\""
-      ssh -n ${EXT_HOST} "bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'" &
+      log_time "ssh -n ${EXT_HOST} \"bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} ${RNGSEED} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'\""
+      ssh -n ${EXT_HOST} "bash -c 'cd ~/; ./generate_data.sh ${GEN_DATA_SCALE} ${CHILD} ${PARALLEL} ${GEN_DATA_PATH} ${RNGSEED} > /tmp/tpcds.generate_data.${CHILD}.log 2>&1 &'" &
       CHILD=$((CHILD + 1))
     done
   done
@@ -112,9 +121,9 @@ if [ "${GEN_NEW_DATA}" == "true" ]; then
     mkdir -p ${GEN_DATA_PATH}/logs
     
     while [ ${CHILD} -le ${PARALLEL} ]; do
-      log_time "sh ${PWD}/dsdgen -scale ${GEN_DATA_SCALE} -dir ${GEN_DATA_PATH} -parallel ${PARALLEL} -child ${CHILD} -terminate n > ${GEN_DATA_PATH}/logs/tpcds.generate_data.${CHILD}.log 2>&1 &"
+      log_time "sh ${PWD}/dsdgen -scale ${GEN_DATA_SCALE} -dir ${GEN_DATA_PATH} -parallel ${PARALLEL} -child ${CHILD} -RNGSEED ${RNGSEED} -terminate n > ${GEN_DATA_PATH}/logs/tpcds.generate_data.${CHILD}.log 2>&1 &"
       cd ${PWD}
-      ${PWD}/dsdgen -scale ${GEN_DATA_SCALE} -dir ${GEN_DATA_PATH} -parallel ${PARALLEL} -child ${CHILD} -terminate n > ${GEN_DATA_PATH}/logs/tpcds.generate_data.${CHILD}.log 2>&1 &
+      ${PWD}/dsdgen -scale ${GEN_DATA_SCALE} -dir ${GEN_DATA_PATH} -parallel ${PARALLEL} -child ${CHILD} -RNGSEED ${RNGSEED} -terminate n > ${GEN_DATA_PATH}/logs/tpcds.generate_data.${CHILD}.log 2>&1 &
       CHILD=$((CHILD + 1))
     done
     wait

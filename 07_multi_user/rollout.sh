@@ -11,11 +11,17 @@ printf "\n"
 # define data loding log file
 LOG_FILE="${TPC_DS_DIR}/log/rollout_load.log"
 
-# get the Load Test End timestamp from the log file for RNGSEED
-if [[ -f "$LOG_FILE" ]]; then
-  RNGSEED=$(tail -n 1 "$LOG_FILE" | cut -d '|' -f 6)
-else
-  RNGSEED=12345
+# Handle RNGSEED configuration
+if [ "${UNIFY_QGEN_SEED}" == "true" ]; then
+  # Use a fixed RNGSEED when unified seed is enabled
+  RNGSEED=2016032410
+else 
+  # Get RNGSEED from log file or use default
+  if [[ -f "$LOG_FILE" ]]; then
+    RNGSEED=$(tail -n 1 "$LOG_FILE" | cut -d '|' -f 6)
+  else
+    RNGSEED=2016032410
+  fi
 fi
 
 if [ "${MULTI_USER_COUNT}" -eq "0" ]; then
