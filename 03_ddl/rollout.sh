@@ -161,8 +161,6 @@ echo "rm -f ${PWD}/GrantTablePrivileges.sql"
 rm -f ${PWD}/GrantTablePrivileges.sql
 psql ${PSQL_OPTIONS} -tc "SELECT format('GRANT ALL PRIVILEGES ON TABLE %I.%I TO %I;', '${DB_SCHEMA_NAME}', tablename, '${BENCH_ROLE}') FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}'" > ${PWD}/GrantTablePrivileges.sql
 
-start_log
-
 if [ "${BENCH_ROLE}" != "gpadmin" ]; then
   # Check if role exists in PostgreSQL
 
@@ -187,8 +185,6 @@ if [ "${BENCH_ROLE}" != "gpadmin" ]; then
   log_time "Grant table privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -f ${PWD}/GrantTablePrivileges.sql
 fi
-
-print_log
 
 echo "Finished ${step}"
 log_time "Step ${step} finished"
