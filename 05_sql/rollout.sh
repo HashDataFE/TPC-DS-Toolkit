@@ -12,8 +12,8 @@ init_log ${step}
 
 if [ "${RUN_QGEN}" == true ]; then
   log_time "Generate queries based on scale"
-  cd ${PWD}
-  ${PWD}/generate_queries.sh
+  cd "${PWD}"
+  "${PWD}/generate_queries.sh"
   log_time "Finished generate queries based on scale"
 fi
 
@@ -93,7 +93,7 @@ for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${BENCH_ROLE}.*.sql" -prin
     print_log ${tuples}
     
     if [[ "${QUERY_INTERVAL}" -ne 0 ]]; then
-      sleep ${QUERY_INTERVAL}
+      sleep "${QUERY_INTERVAL}"
     fi
   done
 done

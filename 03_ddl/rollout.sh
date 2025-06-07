@@ -20,7 +20,7 @@ else
 fi
 
 if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
-  #Create tables - use find with -printf to get just the filename
+  # Create tables - use find with -printf to get just the filename
   for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n"); do
     start_log
     id=$(echo "${i}" | awk -F '.' '{print $1}')
@@ -52,8 +52,13 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
       DISTRIBUTED_BY=""
     fi
 
-    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
-    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
+    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${PWD}/${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
+    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off \
+      -f "${PWD}/${i}" \
+      -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" \
+      -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" \
+      -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" \
+      -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
 
     print_log
   done
