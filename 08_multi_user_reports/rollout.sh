@@ -12,17 +12,17 @@ init_log ${step}
 
 filter="gpdb"
 
-for i in ${PWD}/*.${filter}.*.sql; do
-  log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f ${i}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f ${i}
+# Process SQL files in numeric order with absolute paths
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n" | sort -n); do
+  log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f ${PWD}/${i}"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f "${PWD}/${i}"
   echo ""
 done
 
-filename=$(ls ${PWD}/*.copy.*.sql)
-
-for i in ${TPC_DS_DIR}/log/rollout_testing_*; do
-  logfile="'${i}'"
-  loadsql="\COPY tpcds_testing.sql FROM ${logfile} WITH DELIMITER '|';"
+# Process copy files in numeric order with absolute paths
+for i in $(find "${TPC_DS_DIR}/log" -maxdepth 1 -type f -name "rollout_testing_*" -printf "%f\n" | sort -n); do
+  logfile="${TPC_DS_DIR}/log/${i}"
+  loadsql="\COPY tpcds_testing.sql FROM '${logfile}' WITH DELIMITER '|';"
   log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -c \"${loadsql}\""
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -c "${loadsql}"
   echo ""
@@ -30,7 +30,9 @@ done
 
 psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "select 'analyze ' || n.nspname || '.' || c.relname || ';' from pg_class c join pg_namespace n on n.oid = c.relnamespace and n.nspname = 'tpcds_testing'" | psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -e
 
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -P pager=off -f ${PWD}/detailed_report.sql
+# Generate detailed report
+log_time "Generating detailed report"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -P pager=off -f "${PWD}/detailed_report.sql"
 echo ""
 
 echo "Finished ${step}"

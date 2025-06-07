@@ -11,20 +11,20 @@ printf "\n"
 init_log ${step}
 
 SF=${GEN_DATA_SCALE}
-
 filter="gpdb"
 
-for i in ${PWD}/*.${filter}.*.sql; do
-  log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f ${i}"
-  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f ${i}
+# Process SQL files in numeric order, using absolute paths
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n" | sort -n); do
+  log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f ${PWD}/${i}"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f "${PWD}/${i}"
   echo ""
 done
 
-for i in ${PWD}/*.copy.*.sql; do
-  logstep=$(echo ${i} | awk -F 'copy.' '{print $2}' | awk -F '.' '{print $1}')
+# Process copy files in numeric order, using absolute paths
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.copy.*.sql" -printf "%f\n" | sort -n); do
+  logstep=$(echo "${i}" | awk -F 'copy.' '{print $2}' | awk -F '.' '{print $1}')
   logfile="${TPC_DS_DIR}/log/rollout_${logstep}.log"
-  logfile="'${logfile}'"
-  loadsql="\COPY tpcds_reports.$logstep FROM ${logfile} WITH DELIMITER '|';"
+  loadsql="\COPY tpcds_reports.${logstep} FROM '${logfile}' WITH DELIMITER '|';"
   log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -c \"${loadsql}\""
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -c "${loadsql}"
   echo ""

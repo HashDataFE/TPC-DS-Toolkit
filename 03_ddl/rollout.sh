@@ -20,10 +20,10 @@ else
 fi
 
 if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
-  #Create tables
-  for i in ${PWD}/*.${filter}.*.sql; do
+  # Create tables - process SQL files in numeric order
+  for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n" | sort -n); do
     start_log
-    id=$(echo ${i} | awk -F '.' '{print $1}')
+    id=$(echo "${i}" | awk -F '.' '{print $1}')
     export id
     schema_name=${DB_SCHEMA_NAME}
     #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
@@ -52,18 +52,22 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
       DISTRIBUTED_BY=""
     fi
 
-    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
-    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
+    log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${PWD}/${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
+    psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off \
+      -f "${PWD}/${i}" \
+      -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" \
+      -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" \
+      -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" \
+      -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
 
     print_log
   done
 
-  #Use partition tables for TPCDS when parameter TABLE_USE_PARTITION is set to true
-  #Check paramter TABLE_USE_PARTITION in tpcds_variables.sh
+  # Process partition files in numeric order
   if [ "${TABLE_USE_PARTITION}" == "true" ]; then
-    for i in ${PWD}/*.${filter}.*.partition; do
+    for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.partition" -printf "%f\n" | sort -n); do
       start_log
-      id=$(echo ${i} | awk -F '.' '{print $1}')
+      id=$(echo "${i}" | awk -F '.' '{print $1}')
       export id
       schema_name=${DB_SCHEMA_NAME}
       #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
@@ -92,8 +96,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
       SQL_QUERY="drop table if exists ${DB_SCHEMA_NAME}.${table_name} cascade"
       psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "${SQL_QUERY}"
       
-      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
-      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
+      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${PWD}/${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v ACCESS_METHOD=\"${TABLE_ACCESS_METHOD}\" -v STORAGE_OPTIONS=\"${TABLE_STORAGE_OPTIONS}\" -v DISTRIBUTED_BY=\"${DISTRIBUTED_BY}\""
+      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${PWD}/${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v ACCESS_METHOD="${TABLE_ACCESS_METHOD}" -v STORAGE_OPTIONS="${TABLE_STORAGE_OPTIONS}" -v DISTRIBUTED_BY="${DISTRIBUTED_BY}"
       print_log
     done
   fi
@@ -102,8 +106,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
   get_gpfdist_port
 
   if [ "${RUN_MODEL}" != "cloud" ]; then
-
-   for i in ${PWD}/*.ext_tpcds.*.sql; do
+    # Process external tables in numeric order
+    for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.ext_tpcds.*.sql" -printf "%f\n" | sort -n); do
      start_log
      id=$(echo ${i} | awk -F '.' '{print $1}')
      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
@@ -141,8 +145,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
           done
           LOCATION+="'"
         fi
-      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v LOCATION=\"${LOCATION}\""
-      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v LOCATION="${LOCATION}"
+      log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${PWD}/${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" -v LOCATION=\"${LOCATION}\""
+      psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -a -P pager=off -f ${PWD}/${i} -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" -v LOCATION="${LOCATION}"
       print_log
     done
   fi
@@ -156,8 +160,6 @@ GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${DB_SCHEMA_N
 echo "rm -f ${PWD}/GrantTablePrivileges.sql"
 rm -f ${PWD}/GrantTablePrivileges.sql
 psql ${PSQL_OPTIONS} -tc "SELECT format('GRANT ALL PRIVILEGES ON TABLE %I.%I TO %I;', '${DB_SCHEMA_NAME}', tablename, '${BENCH_ROLE}') FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}'" > ${PWD}/GrantTablePrivileges.sql
-
-start_log
 
 if [ "${BENCH_ROLE}" != "gpadmin" ]; then
   # Check if role exists in PostgreSQL
@@ -183,8 +185,6 @@ if [ "${BENCH_ROLE}" != "gpadmin" ]; then
   log_time "Grant table privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -f ${PWD}/GrantTablePrivileges.sql
 fi
-
-print_log
 
 echo "Finished ${step}"
 log_time "Step ${step} finished"

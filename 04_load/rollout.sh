@@ -58,7 +58,7 @@ if [ "${RUN_MODEL}" == "remote" ]; then
   PORT=18888
   GEN_DATA_PATH=${CLIENT_GEN_PATH}
   sh ${PWD}/stop_gpfdist.sh
-  sh ${PWD}/start_gpfdist.sh $PORT ${GEN_DATA_PATH}
+  sh ${PWD}/start_gpfdist.sh $PORT ${GEN_DATA_PATH} ${GPHOME}
 elif [ "${RUN_MODEL}" == "local" ]; then
   copy_script
   start_gpfdist
@@ -76,7 +76,8 @@ for ((i=0; i<${LOAD_PARALLEL}; i++)); do
     echo >&5
 done
 
-for i in ${PWD}/*.${filter}.*.sql; do
+# Use find to get just filenames, then process each file in numeric order
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n" | sort -n); do
     # Acquire a token to control concurrency
     read -u 5
     {
@@ -86,31 +87,30 @@ for i in ${PWD}/*.${filter}.*.sql; do
         export id
         schema_name=${DB_SCHEMA_NAME}
         export schema_name
-        #schema_name=$(echo "${i}" | awk -F '.' '{print $2}')
         table_name=$(echo "${i}" | awk -F '.' '{print $3}')
         export table_name
 
         if [ "${RUN_MODEL}" == "cloud" ]; then
             GEN_DATA_PATH=${CLIENT_GEN_PATH}
             tuples=0
-            for file in ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat; do
+            for file in "${GEN_DATA_PATH}/${table_name}"_[0-9]*_[0-9]*.dat; do
                 if [ -e "$file" ]; then
                     #log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${DB_SCHEMA_NAME}.${table_name} FROM '$file' DELIMITER '|' NULL AS '' ESCAPE E'\\\\\\\\' ENCODING 'LATIN1'\" | grep COPY | awk -F ' ' '{print \$2}'"
                     log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c \"\COPY ${DB_SCHEMA_NAME}.${table_name} FROM '$file' WITH (FORMAT csv, DELIMITER '|', NULL '', ESCAPE E'\\\\\\\\', ENCODING 'LATIN1')\" | grep COPY | awk -F ' ' '{print \$2}'"
                     result=$(
-                        #psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${DB_SCHEMA_NAME}.${table_name} FROM '$file' WITH DELIMITER '|' NULL AS '' ESCAPE E'\\\\' ENCODING 'LATIN1'" | grep COPY | awk -F ' ' '{print $2}'
                         psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "\COPY ${DB_SCHEMA_NAME}.${table_name} FROM '$file' WITH (FORMAT csv, DELIMITER '|', NULL '', ESCAPE E'\\\\', ENCODING 'LATIN1')" | grep COPY | awk -F ' ' '{print $2}'
                         exit ${PIPESTATUS[0]}
                     )
                     tuples=$((tuples + result))
                 else
-                    log_time "No matching files found for pattern ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat"
+                    log_time "No matching files found for pattern: ${GEN_DATA_PATH}/${table_name}_[0-9]*_[0-9]*.dat"
                 fi
             done
         else
-            log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" | grep INSERT | awk -F ' ' '{print \$3}'"
+            log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${PWD}/${i} -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\" | grep INSERT | awk -F ' ' '{print \$3}'"
             tuples=$(
-                psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f "${i}" -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" | grep INSERT | awk -F ' ' '{print $3}'
+                psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f "${PWD}/${i}" \
+                    -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}" | grep INSERT | awk -F ' ' '{print $3}'
                 exit ${PIPESTATUS[0]}
             )
         fi
