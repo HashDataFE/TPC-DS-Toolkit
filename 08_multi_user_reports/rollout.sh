@@ -12,15 +12,15 @@ init_log ${step}
 
 filter="gpdb"
 
-# Process SQL files using find for safe filename handling
-for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n"); do
+# Process SQL files in numeric order with absolute paths
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n" | sort -n); do
   log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f ${PWD}/${i}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f "${PWD}/${i}"
   echo ""
 done
 
-# Process copy files safely
-for i in $(find "${TPC_DS_DIR}/log" -maxdepth 1 -type f -name "rollout_testing_*" -printf "%f\n"); do
+# Process copy files in numeric order with absolute paths
+for i in $(find "${TPC_DS_DIR}/log" -maxdepth 1 -type f -name "rollout_testing_*" -printf "%f\n" | sort -n); do
   logfile="${TPC_DS_DIR}/log/${i}"
   loadsql="\COPY tpcds_testing.sql FROM '${logfile}' WITH DELIMITER '|';"
   log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -c \"${loadsql}\""

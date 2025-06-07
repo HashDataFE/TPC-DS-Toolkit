@@ -61,20 +61,27 @@ function generate_templates() {
     rm -f "${sql_dir}"/*.sql
   done
 
-  #Create queries
+  # Create queries
   echo "cd ${PWD}"
   cd "${PWD}"
   log_time "${PWD}/dsqgen -streams ${MULTI_USER_COUNT} -input ${PWD}/query_templates/templates.lst -directory ${PWD}/query_templates -dialect hashdata -scale ${GEN_DATA_SCALE} -RNGSEED ${RNGSEED} -verbose y -output ${PWD}"
-  ${PWD}/dsqgen -streams ${MULTI_USER_COUNT} -input ${PWD}/query_templates/templates.lst -directory ${PWD}/query_templates -dialect hashdata -scale ${GEN_DATA_SCALE} -RNGSEED ${RNGSEED} -verbose y -output ${PWD}
+  "${PWD}/dsqgen" -streams ${MULTI_USER_COUNT} \
+    -input "${PWD}/query_templates/templates.lst" \
+    -directory "${PWD}/query_templates" \
+    -dialect hashdata \
+    -scale ${GEN_DATA_SCALE} \
+    -RNGSEED ${RNGSEED} \
+    -verbose y \
+    -output "${PWD}"
 
-  #move the query_x.sql file to the correct session directory
-  for i in $(find "${PWD}" -maxdepth 1 -type f -name "query_*.sql" -printf "%f\n"); do
+  # Move query files to session directories in numerical order
+  for i in $(find "${PWD}" -maxdepth 1 -type f -name "query_*.sql" -printf "%f\n" | sort -n); do
     stream_number=$(echo "${i}" | awk -F '[_.]' '{print $2}')
-    #going from base 0 to base 1
+    # Going from base 0 to base 1
     stream_number=$((stream_number + 1))
     echo "stream_number: ${stream_number}"
     sql_dir="${PWD}/${stream_number}"
-    echo "mv ${i} ${sql_dir}/"
+    echo "mv ${PWD}/${i} ${sql_dir}/"
     mv "${PWD}/${i}" "${sql_dir}/"
   done
 }

@@ -13,15 +13,15 @@ init_log ${step}
 SF=${GEN_DATA_SCALE}
 filter="gpdb"
 
-# Process SQL files using find for safe filename handling
-for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n"); do
+# Process SQL files in numeric order, using absolute paths
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n" | sort -n); do
   log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f ${PWD}/${i}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -a -f "${PWD}/${i}"
   echo ""
 done
 
-# Process copy files
-for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.copy.*.sql" -printf "%f\n"); do
+# Process copy files in numeric order, using absolute paths
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.copy.*.sql" -printf "%f\n" | sort -n); do
   logstep=$(echo "${i}" | awk -F 'copy.' '{print $2}' | awk -F '.' '{print $1}')
   logfile="${TPC_DS_DIR}/log/rollout_${logstep}.log"
   loadsql="\COPY tpcds_reports.${logstep} FROM '${logfile}' WITH DELIMITER '|';"

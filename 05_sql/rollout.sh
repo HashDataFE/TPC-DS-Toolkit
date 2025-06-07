@@ -59,8 +59,8 @@ if [ "${ON_ERROR_STOP}" == 0 ]; then
   set +e
 fi
 
-# Loop through SQL files using find to handle filenames safely
-for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${BENCH_ROLE}.*.sql" -printf "%f\n"); do
+# Loop through SQL files in numeric order
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${BENCH_ROLE}.*.sql" -printf "%f\n" | sort -n); do
   for _ in $(seq 1 ${SINGLE_USER_ITERATIONS}); do
     id=$(echo "${i}" | awk -F '.' '{print $1}')
     export id

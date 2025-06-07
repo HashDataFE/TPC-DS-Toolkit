@@ -76,8 +76,8 @@ for ((i=0; i<${LOAD_PARALLEL}; i++)); do
     echo >&5
 done
 
-# Use find to get just filenames, then process each file
-for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n"); do
+# Use find to get just filenames, then process each file in numeric order
+for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n" | sort -n); do
     # Acquire a token to control concurrency
     read -u 5
     {
