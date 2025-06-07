@@ -20,10 +20,10 @@ else
 fi
 
 if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
-  #Create tables
-  for i in ${PWD}/*.${filter}.*.sql; do
+  #Create tables - use find with -printf to get just the filename
+  for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n"); do
     start_log
-    id=$(echo ${i} | awk -F '.' '{print $1}')
+    id=$(echo "${i}" | awk -F '.' '{print $1}')
     export id
     schema_name=${DB_SCHEMA_NAME}
     #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
@@ -61,9 +61,9 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
   #Use partition tables for TPCDS when parameter TABLE_USE_PARTITION is set to true
   #Check paramter TABLE_USE_PARTITION in tpcds_variables.sh
   if [ "${TABLE_USE_PARTITION}" == "true" ]; then
-    for i in ${PWD}/*.${filter}.*.partition; do
+    for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.partition" -printf "%f\n"); do
       start_log
-      id=$(echo ${i} | awk -F '.' '{print $1}')
+      id=$(echo "${i}" | awk -F '.' '{print $1}')
       export id
       schema_name=${DB_SCHEMA_NAME}
       #schema_name=$(echo ${i} | awk -F '.' '{print $2}')
@@ -103,7 +103,7 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
 
   if [ "${RUN_MODEL}" != "cloud" ]; then
 
-   for i in ${PWD}/*.ext_tpcds.*.sql; do
+   for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.ext_tpcds.*.sql" -printf "%f\n"); do
      start_log
      id=$(echo ${i} | awk -F '.' '{print $1}')
      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
