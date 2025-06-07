@@ -20,8 +20,8 @@ else
 fi
 
 if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
-  # Create tables - use find with -printf to get just the filename
-  for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n"); do
+  # Create tables - process SQL files in numeric order
+  for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.sql" -printf "%f\n" | sort -n); do
     start_log
     id=$(echo "${i}" | awk -F '.' '{print $1}')
     export id
@@ -63,10 +63,9 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
     print_log
   done
 
-  #Use partition tables for TPCDS when parameter TABLE_USE_PARTITION is set to true
-  #Check paramter TABLE_USE_PARTITION in tpcds_variables.sh
+  # Process partition files in numeric order
   if [ "${TABLE_USE_PARTITION}" == "true" ]; then
-    for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.partition" -printf "%f\n"); do
+    for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.${filter}.*.partition" -printf "%f\n" | sort -n); do
       start_log
       id=$(echo "${i}" | awk -F '.' '{print $1}')
       export id
@@ -107,8 +106,8 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
   get_gpfdist_port
 
   if [ "${RUN_MODEL}" != "cloud" ]; then
-
-   for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.ext_tpcds.*.sql" -printf "%f\n"); do
+    # Process external tables in numeric order
+    for i in $(find "${PWD}" -maxdepth 1 -type f -name "*.ext_tpcds.*.sql" -printf "%f\n" | sort -n); do
      start_log
      id=$(echo ${i} | awk -F '.' '{print $1}')
      schema_name=$(echo ${i} | awk -F '.' '{print $2}')
