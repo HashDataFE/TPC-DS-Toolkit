@@ -58,7 +58,7 @@ if [ "${RUN_MODEL}" == "remote" ]; then
   PORT=18888
   GEN_DATA_PATH=${CLIENT_GEN_PATH}
   sh ${PWD}/stop_gpfdist.sh
-  sh ${PWD}/start_gpfdist.sh $PORT ${GEN_DATA_PATH}
+  sh ${PWD}/start_gpfdist.sh $PORT ${GEN_DATA_PATH} ${GPHOME}
 elif [ "${RUN_MODEL}" == "local" ]; then
   copy_script
   start_gpfdist
