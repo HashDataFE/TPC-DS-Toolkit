@@ -22,8 +22,8 @@ gpconfig -c work_mem -v 512000
 
 gpconfig -c gp_autostats_mode -v 'none'
 gpconfig -c autovacuum -v off
-gpconfig -c max_connections -m 30 -v 150
-gpconfig -c max_prepared_transactions -v 30
+gpconfig -c max_connections -m 100 -v 500
+gpconfig -c max_prepared_transactions -v 100
 
 
 # the following for mirrorless configuration only
