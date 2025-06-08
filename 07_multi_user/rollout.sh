@@ -30,7 +30,7 @@ if [ "${MULTI_USER_COUNT}" -eq "0" ]; then
 fi
 
 function get_running_jobs_count() {
-  job_count=$(ps -fu "${ADMIN_USER}" | grep -c "07_multi_user/test.sh" || true)
+  job_count=$(ps -fu "${ADMIN_USER}" |grep -v grep |grep "07_multi_user/test.sh"|wc -l || true)
   echo "${job_count}"
 }
 
