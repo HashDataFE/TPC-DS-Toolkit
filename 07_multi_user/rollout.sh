@@ -101,7 +101,7 @@ seconds=0
 echo -n "Multi-user query duration: "
 tput sc
 running_jobs_count=$(get_running_jobs_count)
-while [ ${running_jobs_count} -gt 1 ]; do
+while [ ${running_jobs_count} -gt 0 ]; do
   tput rc
   echo -n "${seconds} second(s)"
   sleep 5
