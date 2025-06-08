@@ -104,9 +104,9 @@ running_jobs_count=$(get_running_jobs_count)
 while [ ${running_jobs_count} -gt 0 ]; do
   tput rc
   echo -n "${seconds} second(s)"
-  sleep 5
+  sleep 15
   running_jobs_count=$(get_running_jobs_count)
-  seconds=$((seconds + 5))
+  seconds=$((seconds + 15))
 done
 echo ""
 echo "done."
