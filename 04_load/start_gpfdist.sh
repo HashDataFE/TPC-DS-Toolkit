@@ -4,12 +4,12 @@ set -e
 PWD=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 GPFDIST_PORT=${1}
 GEN_DATA_PATH=${2}
-gphome=${3}
+env_file=${3}
 seghost=`hostname`
 
 #if [ -z "$GPHOME" ]; then
-echo "source $gphome/greenplum_path.sh"
-source $gphome/greenplum_path.sh
+echo "source ${env_file}"
+source ${env_file}
 #fi
 
 gpfdist -p ${GPFDIST_PORT} -d ${GEN_DATA_PATH} > ${GEN_DATA_PATH}/gpfdist.${GPFDIST_PORT}.log 2>&1 &

@@ -15,45 +15,6 @@ export schema_name
 table_name="init"
 export table_name
 
-function set_segment_bashrc() {
-  #this is only needed if the segment nodes don't have the bashrc file created
-  export LD_PRELOAD=/lib64/libz.so.1 ps
-  echo "if [ -f /etc/bashrc ]; then" > ${PWD}/segment_bashrc
-  echo "  . /etc/bashrc" >> ${PWD}/segment_bashrc
-  echo "fi" >> ${PWD}/segment_bashrc
-  echo "source ${GREENPLUM_PATH}" >> ${PWD}/segment_bashrc
-  echo "export LD_PRELOAD=${LD_PRELOAD}" >> ${PWD}/segment_bashrc
-  chmod 755 ${PWD}/segment_bashrc
-
-  echo "set up .bashrc on segment hosts"
-  for ext_host in $(cat ${TPC_DS_DIR}/segment_hosts.txt); do
-    # don't overwrite the master.  Only needed on single node installs
-    shortname=$(echo ${ext_host} | awk -F '.' '{print $1}')
-    if [ "${MASTER_HOST}" != "${shortname}" ]; then
-      bashrc_exists=$(ssh ${ext_host} "find ~ -name .bashrc | grep -c .")
-      if [ ${bashrc_exists} -eq 0 ]; then
-        echo "copy new .bashrc to ${ext_host}:~${ADMIN_USER}"
-        scp ${PWD}/segment_bashrc ${ext_host}:~${ADMIN_USER}/.bashrc
-      else
-        if [ "${RESET_ENV_ON_SEGMENT}" == "true" ]; then
-          ssh ${ext_host} "sed -i '/greenplum_path.sh/d' ~/.bashrc"
-          ssh ${ext_host} "sed -i '/LD_PRELOAD/d' ~/.bashrc"
-        fi
-        count=$(ssh ${ext_host} "grep -c greenplum_path ~/.bashrc || true")
-        if [ ${count} -eq 0 ]; then
-          echo "Adding greenplum_path to ${ext_host} .bashrc"
-          ssh ${ext_host} "echo \"source ${GREENPLUM_PATH}\" >> ~/.bashrc"
-        fi
-        count=$(ssh ${ext_host} "grep -c LD_PRELOAD ~/.bashrc || true")
-        if [ ${count} -eq 0 ]; then
-          echo "Adding LD_PRELOAD to ${ext_host} .bashrc"
-          ssh ${ext_host} "echo \"export LD_PRELOAD=${LD_PRELOAD}\" >> ~/.bashrc"
-        fi
-      fi
-    fi
-  done
-}
-
 function check_gucs() {
   update_config="0"
 
@@ -141,7 +102,6 @@ if [ "${RUN_MODEL}" != "local" ]; then
   # Add any specific commands for REMOTE mode here
 else
   echo "Running in LOCAL mode"
-  #set_segment_bashrc
   check_gucs
   copy_config
 fi

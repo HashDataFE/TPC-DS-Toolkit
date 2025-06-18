@@ -84,17 +84,22 @@ function source_bashrc() {
     # shellcheck disable=SC1090
     source ${startup_file} || true
   fi
-  count=$(egrep -c "^[^#]*source .*/greenplum_path.sh|^[^#]*\. .*/greenplum_path.sh" ${startup_file})
+  # 根据版本选择要检查的环境文件
+  if [ "$VERSION" = "synxdb" ]; then
+    target_file="cluster_env.sh"
+  else
+    target_file="greenplum_path.sh"
+  fi
+  
+  count=$(egrep -c "^[^#]*source .*/${target_file}|^[^#]*\. .*/${target_file}" ${startup_file})
   if [ ${count} -eq 0 ]; then
-    echo "${HOME}/.bashrc does not contain greenplum_path.sh"
+    echo "${HOME}/.bashrc does not contain ${target_file}"
     echo "Please update your ${startup_file} for ${ADMIN_USER} and try again."
     exit 1
   elif [ ${count} -gt 1 ]; then
-    echo "${HOME}/.bashrc contains multiple greenplum_path.sh entries"
+    echo "${HOME}/.bashrc contains multiple ${target_file} entries"
     echo "Please update your ${startup_file} for ${ADMIN_USER} and try again."
     exit 1
-  else
-    get_version
   fi
 }
 
@@ -142,6 +147,8 @@ function get_version() {
         WHEN POSITION('Greenplum Database 7' IN version) > 0 THEN 'gpdb_7'
         WHEN POSITION('Cloudberry' IN version) > 0 AND 
              POSITION('Lightning' IN version) > 0 THEN 'lightning'
+        WHEN POSITION('Cloudberry' IN version) > 0 AND 
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb'
         WHEN POSITION('Cloudberry' IN version) > 0 THEN 'cbdb'
         WHEN POSITION('PostgreSQL' IN version) > 0 AND 
              POSITION('Greenplum' IN version) = 0 AND 
