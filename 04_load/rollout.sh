@@ -14,7 +14,7 @@ filter="gpdb"
 
 if [ "$VERSION" = "synxdb" ]; then
     env_file="${GPHOME}/cluster_env.sh"
-  else
+else
     env_file="${GPHOME}/greenplum_path.sh"
 fi
 
