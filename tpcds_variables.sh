@@ -2,7 +2,6 @@
 export ADMIN_USER="gpadmin"
 export BENCH_ROLE="dsbench"
 export DB_SCHEMA_NAME="tpcds"
-export GREENPLUM_PATH=$GPHOME/greenplum_path.sh
  
 ## Set to "local" to run the benchmark on the COORDINATOR host or "cloud" to run the benchmark from a remote client.
 export RUN_MODEL="cloud"
