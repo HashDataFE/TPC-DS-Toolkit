@@ -12,6 +12,12 @@ init_log ${step}
 
 filter="gpdb"
 
+if [ "$DB_VERSION" = "synxdb" ]; then
+    env_file="${GPHOME}/cluster_env.sh"
+else
+    env_file="${GPHOME}/greenplum_path.sh"
+fi
+
 function copy_script() {
   log_time "copy the start and stop scripts to the segment hosts in the cluster"
   for i in $(cat ${TPC_DS_DIR}/segment_hosts.txt); do
@@ -48,8 +54,8 @@ function start_gpfdist() {
     GEN_DATA_PATH="${GEN_DATA_PATH}/dsbenchmark"
     PORT=$((GPFDIST_PORT + flag))
     let flag=$flag+1
-    log_time "ssh -n ${EXT_HOST} \"bash -c 'cd ~${ADMIN_USER}; ./start_gpfdist.sh $PORT ${GEN_DATA_PATH} ${GPHOME}'\""
-    ssh -n ${EXT_HOST} "bash -c 'cd ~${ADMIN_USER}; ./start_gpfdist.sh $PORT ${GEN_DATA_PATH} ${GPHOME}'" &
+    log_time "ssh -n ${EXT_HOST} \"bash -c 'cd ~${ADMIN_USER}; ./start_gpfdist.sh $PORT ${GEN_DATA_PATH} ${env_file}'\""
+    ssh -n ${EXT_HOST} "bash -c 'cd ~${ADMIN_USER}; ./start_gpfdist.sh $PORT ${GEN_DATA_PATH} ${env_file}'" &
   done
   wait
 }
@@ -58,7 +64,7 @@ if [ "${RUN_MODEL}" == "remote" ]; then
   PORT=18888
   GEN_DATA_PATH=${CLIENT_GEN_PATH}
   sh ${PWD}/stop_gpfdist.sh
-  sh ${PWD}/start_gpfdist.sh $PORT ${GEN_DATA_PATH} ${GPHOME}
+  sh ${PWD}/start_gpfdist.sh $PORT ${GEN_DATA_PATH} ${env_file}
 elif [ "${RUN_MODEL}" == "local" ]; then
   copy_script
   start_gpfdist

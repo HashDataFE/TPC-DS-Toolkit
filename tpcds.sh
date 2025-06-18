@@ -9,10 +9,6 @@ source ./${VARS_FILE}
 # shellcheck source=functions.sh
 source ./${FUNCTIONS_FILE}
 
-if [ "${RUN_MODEL}" != "cloud" ]; then
-  source_bashrc
-fi
-
 TPC_DS_DIR=$(get_pwd ${BASH_SOURCE[0]})
 export TPC_DS_DIR
 
@@ -32,5 +28,8 @@ export DB_VERSION_FULL=${VERSION_FULL}
 log_time "Current database is:\n${DB_VERSION}"
 log_time "Current database version is:\n${DB_VERSION_FULL}"
 
+if [ "${RUN_MODEL}" != "cloud" ]; then
+  source_bashrc
+fi
 # run the benchmark
 ./rollout.sh
