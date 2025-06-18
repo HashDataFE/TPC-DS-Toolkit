@@ -12,7 +12,7 @@ init_log ${step}
 
 filter="gpdb"
 
-if [ "$VERSION" = "synxdb" ]; then
+if [ "$DB_VERSION" = "synxdb" ]; then
     env_file="${GPHOME}/cluster_env.sh"
 else
     env_file="${GPHOME}/greenplum_path.sh"
