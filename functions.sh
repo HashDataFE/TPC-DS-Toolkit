@@ -120,7 +120,7 @@ export -f get_pwd
 function get_gpfdist_port() {
   
   if [ "$RUN_MODEL" == "local" ]; then
-    all_ports=$(psql -t -A -c "select min(case when role = 'p' then port else 999999 end), min(case when role = 'm' then port else 999999 end) from gp_segment_configuration where content >= 0")
+    all_ports=$(psql ${PSQL_OPTIONS} -t -A -c "select min(case when role = 'p' then port else 999999 end), min(case when role = 'm' then port else 999999 end) from gp_segment_configuration where content >= 0")
     primary_base=$(echo ${all_ports} | awk -F '|' '{print $1}' | head -c1)
     mirror_base=$(echo $all_ports | awk -F '|' '{print $2}' | head -c1)
 
