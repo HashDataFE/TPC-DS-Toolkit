@@ -66,7 +66,7 @@ CREATE INDEX idx_date_dim_quarter ON date_dim (d_qoy, d_year);
 
 -- 4. store table
 COMMENT ON TABLE store IS 'Store dimension table';
-CREATE UNIQUE INDEX idx_store_id ON store (s_store_id);
+CREATE UNIQUE INDEX idx_store_id ON store (s_store_sk);
 CREATE INDEX idx_store_address ON store (s_county, s_state);
 
 -- 5. web_page and catalog_page
