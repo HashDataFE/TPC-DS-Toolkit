@@ -4,11 +4,12 @@ export BENCH_ROLE="dsbench"
 export DB_SCHEMA_NAME="tpcds"
  
 ## Set to "local" to run the benchmark on the COORDINATOR host or "cloud" to run the benchmark from a remote client.
-export RUN_MODEL="cloud"
+export RUN_MODEL="local"
 
 ## Default port is configured via the env setting of $PGPORT for user $ADMIN_USER
-## Configure the host/port/user to connect to the cluster running the test. Can be left empty when running in local mode with gpadmin.
-export PSQL_OPTIONS="-h 2f445c57-c838-4038-a410-50ee36f9461d.cloud.hashdata.ai -p 5432"
+## Configure the host/port/user to connect to the cluster running the test. Can be left empty when all variables are set for the $ADMIN_USER
+## eg. export PSQL_OPTIONS="-h 2f445c57-c838-4038-a410-50ee36f9461d.cloud.hashdata.ai -p 5432"
+export PSQL_OPTIONS=""
 
 ## The following variables only take effect when RUN_MODEL is set to "cloud".
 ### Default path to store the generated benchmark data
@@ -83,7 +84,7 @@ export RUN_SCORE="false"
 # Misc options
 export SINGLE_USER_ITERATIONS="1"
 export EXPLAIN_ANALYZE="false"
-export RANDOM_DISTRIBUTION="true"
+export RANDOM_DISTRIBUTION="false"
 ## Set to on/off to enable vectorization
 export ENABLE_VECTORIZATION="off"
 export STATEMENT_MEM="1.9GB"
@@ -106,4 +107,4 @@ export DB_SCHEMA_NAME="$(echo "${DB_SCHEMA_NAME}" | tr '[:upper:]' '[:lower:]')"
 ## catalog_returns / catalog_sales / inventory / store_returns / store_sales / web_returns / web_sales
 # export TABLE_USE_PARTITION="true"
 ## SET TABLE_STORAGE_OPTIONS with different options in GP/CBDB/Cloud "appendoptimized=true, orientation=column, compresstype=zstd, compresslevel=5, blocksize=1048576"
-export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"
+export TABLE_STORAGE_OPTIONS="WITH (appendoptimized=true, orientation=column,compresstype=zstd, compresslevel=5)"
