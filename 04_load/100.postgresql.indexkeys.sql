@@ -49,13 +49,13 @@ CREATE INDEX idx_store_returns_reason ON store_returns (sr_reason_sk);
 
 -- 1. customer table
 COMMENT ON TABLE customer IS 'Customer dimension table';
-CREATE UNIQUE INDEX idx_customer_id ON customer (c_customer_sk);
+CREATE UNIQUE INDEX idx_customer_sk ON customer (c_customer_sk);
 CREATE INDEX idx_customer_name ON customer (c_last_name, c_first_name);
 CREATE INDEX idx_customer_demographic ON customer (c_current_cdemo_sk);
 
 -- 2. item table
 COMMENT ON TABLE item IS 'Product dimension table';
-CREATE UNIQUE INDEX idx_item_id ON item (i_item_sk);
+CREATE UNIQUE INDEX idx_item_sk ON item (i_item_sk);
 CREATE INDEX idx_item_category ON item (i_category, i_class);
 
 -- 3. date_dim table
@@ -71,7 +71,7 @@ CREATE INDEX idx_store_address ON store (s_county, s_state);
 
 -- 5. web_page and catalog_page
 CREATE INDEX idx_web_page_url ON web_page (wp_web_page_sk, wp_access_date_sk);
-CREATE INDEX idx_catalog_page_category ON catalog_page (cp_department, cp_category);
+CREATE INDEX idx_catalog_page_category ON catalog_page (cp_department, cp_type);
 
 -- 6. promotion table
 CREATE INDEX idx_promotion_type ON promotion (p_channel_dmail, p_promo_sk);
