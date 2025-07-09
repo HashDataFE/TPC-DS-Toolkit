@@ -142,7 +142,10 @@ log_time " 1. Create indexes and keys"
 if [ "${DB_VERSION}" == "postgresql" ]; then
   log_time "psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${PWD}/100.postgresql.indexkeys.sql -v DB_SCHEMA_NAME=\"${DB_SCHEMA_NAME}\""
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -f ${PWD}/100.postgresql.indexkeys.sql -v DB_SCHEMA_NAME="${DB_SCHEMA_NAME}"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "SELECT tablename, indexname FROM pg_indexes WHERE schemaname = '${DB_SCHEMA_NAME}' ORDER BY tablename, indexname;"
 fi
+
+
 
 log_time " 2. Analyze tables"
 

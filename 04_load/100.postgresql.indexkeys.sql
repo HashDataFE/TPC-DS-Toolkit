@@ -93,16 +93,5 @@ WHERE ss_sold_date_sk >= 2452275; -- Use the actual value from step 1
 
 -- Expression index
 CREATE INDEX idx_store_returns_amount_expr ON store_returns ((sr_return_amt * 0.9));
-
--- ===================================================================
--- Index Verification
--- ===================================================================
-
--- Check if indexes are created successfully
-SELECT tablename, indexname 
-FROM pg_indexes 
-WHERE schemaname = ':DB_SCHEMA_NAME' 
-ORDER BY tablename, indexname;
-
 -- Prompt message
 \echo 'TPC-DS index creation completed!'
