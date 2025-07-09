@@ -69,7 +69,7 @@ COMMENT ON TABLE store IS 'Store dimension table';
 CREATE UNIQUE INDEX idx_store_id ON store (s_store_sk);
 CREATE INDEX idx_store_address ON store (s_county, s_state, s_store_sk);
 -- Add: Store performance metrics index
-CREATE INDEX idx_store_perf ON store (s_store_sk, s_sales_volume, s_employee_count);
+CREATE INDEX idx_store_perf ON store (s_store_sk, s_floor_space, s_number_employees); -- Use valid columns
 
 -- 5. web_page and catalog_page
 CREATE INDEX idx_web_page_url ON web_page (wp_web_page_sk, wp_access_date_sk, wp_type);
