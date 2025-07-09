@@ -145,8 +145,6 @@ if [ "${DB_VERSION}" == "postgresql" ]; then
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -c "SELECT tablename, indexname FROM pg_indexes WHERE schemaname = '${DB_SCHEMA_NAME}' ORDER BY tablename, indexname;"
 fi
 
-
-
 log_time "Analyze tables"
 
 start_log
