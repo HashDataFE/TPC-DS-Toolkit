@@ -5,7 +5,6 @@
 -- ===================================================================
 
 -- Start transaction (ensure atomicity)
-BEGIN;
 
 -- Set search path (adjust based on actual schema name)
 set search_path=:DB_SCHEMA_NAME,public;
@@ -104,9 +103,6 @@ SELECT tablename, indexname
 FROM pg_indexes 
 WHERE schemaname = ':DB_SCHEMA_NAME' 
 ORDER BY tablename, indexname;
-
--- Commit transaction
-COMMIT;
 
 -- Prompt message
 \echo 'TPC-DS index creation completed!'
