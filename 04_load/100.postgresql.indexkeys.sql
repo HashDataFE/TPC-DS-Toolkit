@@ -54,7 +54,7 @@ COMMENT ON TABLE item IS 'Product dimension table';
 CREATE UNIQUE INDEX idx_item_sk ON item (i_item_sk);
 CREATE INDEX idx_item_category ON item (i_category, i_class, i_brand);
 -- Add: Product price and availability index
-CREATE INDEX idx_item_price ON item (i_item_sk, i_current_price, i_available);
+CREATE INDEX idx_item_price ON item (i_item_sk, i_current_price, i_units);
 
 -- 3. date_dim table
 COMMENT ON TABLE date_dim IS 'Date dimension table';
