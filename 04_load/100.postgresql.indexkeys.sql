@@ -42,6 +42,7 @@ CREATE INDEX idx_store_returns_sale ON store_returns (sr_item_sk, sr_ticket_numb
 CREATE INDEX idx_web_returns_sale ON web_returns (wr_item_sk, wr_order_number);
 CREATE INDEX idx_catalog_returns_sale ON catalog_returns (cr_item_sk, cr_order_number);
 CREATE INDEX idx_store_returns_reason ON store_returns (sr_reason_sk);
+CREATE INDEX idx_store_returns_date ON store_returns (sr_returned_date_sk);
 
 -- ===================================================================
 -- Dimension Table Indexes
