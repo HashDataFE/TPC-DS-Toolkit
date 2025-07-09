@@ -90,7 +90,7 @@ CREATE INDEX idx_web_sales_customer_item ON web_sales (ws_bill_customer_sk, ws_i
 
 -- Partial index (for commonly used time ranges)
 CREATE INDEX idx_store_sales_recent ON store_sales (ss_sold_date_sk, ss_customer_sk)
-WHERE ss_sold_date_sk >= (SELECT d_date_sk FROM date_dim WHERE d_year = 2002);
+WHERE ss_sold_date_sk >= 2452275; -- Use the actual value from step 1
 
 -- Expression index
 CREATE INDEX idx_store_returns_amount_expr ON store_returns ((sr_return_amt * 0.9));
