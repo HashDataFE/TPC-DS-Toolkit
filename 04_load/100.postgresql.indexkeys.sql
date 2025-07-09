@@ -35,7 +35,7 @@ CREATE INDEX idx_catalog_sales_item_date ON catalog_sales (cs_item_sk, cs_sold_d
 -- 4. Return fact table indexes
 CREATE INDEX idx_store_returns_sale ON store_returns (sr_item_sk, sr_ticket_number) INCLUDE (sr_returned_date_sk, sr_return_amt);
 CREATE INDEX idx_web_returns_sale ON web_returns (wr_item_sk, wr_order_number) INCLUDE (wr_returned_date_sk, wr_return_amt);
-CREATE INDEX idx_catalog_returns_sale ON catalog_returns (cr_item_sk, cr_order_number) INCLUDE (cr_returned_date_sk, cr_return_amt);
+CREATE INDEX idx_catalog_returns_sale ON catalog_returns (cr_item_sk, cr_order_number) INCLUDE (cr_returned_date_sk, cr_return_amount);
 
 -- ===================================================================
 -- Dimension Table Indexes
