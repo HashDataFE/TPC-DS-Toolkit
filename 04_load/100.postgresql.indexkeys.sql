@@ -95,7 +95,7 @@ CREATE INDEX idx_store_returns_amount_expr ON store_returns ((sr_return_amt * 0.
 -- Check if indexes are created successfully
 SELECT tablename, indexname 
 FROM pg_indexes 
-WHERE schemaname = :DB_SCHEMA_NAME 
+WHERE schemaname = ':DB_SCHEMA_NAME' 
 ORDER BY tablename, indexname;
 
 -- Commit transaction
