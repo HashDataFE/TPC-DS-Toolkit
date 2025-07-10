@@ -3,17 +3,17 @@
 This guide provides step-by-step instructions on how to set up and run the TPC-DS benchmark toolkit on a Cloudberry/Greenplum cluster. It also supports products with similar architectures: HashData Lightning, SynxDB 1.x, SynxDB 2.x, SynxDB 3.x, and SynxDB 4.x
 
 ## Prerequisites
-When access to a cluster coordinator node is available, it is best to run the test in "local" mode to leverage the MPP architecture for faster data generation and loading.
+When you have access to a cluster coordinator node, running the test in "local" mode is recommended to leverage the MPP architecture for faster data generation and loading.
 
-If access to a cluster coordinator node is unavailable, the test can also be executed in "Cloud" mode, where data generation and loading occur on the client host.
+If you don't have access to a cluster coordinator node, the test can also be executed in "Cloud" mode, where data generation and loading occur on the client host.
 
 ### Running Tests on Coordinator Node (Recommended)
 1. Configure environment variables for the database administrator account (e.g., gpadmin, used in this guide).
-2. Since we'll use direct psql login, it's advisable to create a gpadmin database.
+2. Since we'll use direct psql login, we recommend creating a gpadmin database.
 
 ### Running Tests on Remote Client Host
-1. psql client installed with passwordless access to the remote cluster (.pgpass configured properly)
-2. "PSQL_OPTIONS" MUST be configured properly in tpcds_variables.sh file.
+1. A psql client installed with passwordless access to the remote cluster (.pgpass configured properly)
+2. "PSQL_OPTIONS" must be properly configured in the tpcds_variables.sh file.
 
 > The following conventions are used in this document: mdw for the coordinator node, and sdw1..n for segment nodes.
 
