@@ -64,11 +64,11 @@ function generate_templates() {
   # Create queries
   echo "cd ${PWD}"
   cd "${PWD}"
-  log_time "${PWD}/dsqgen -streams ${MULTI_USER_COUNT} -input ${PWD}/query_templates/templates.lst -directory ${PWD}/query_templates -dialect hashdata -scale ${GEN_DATA_SCALE} -RNGSEED ${RNGSEED} -verbose y -output ${PWD}"
+  log_time "${PWD}/dsqgen -streams ${MULTI_USER_COUNT} -input ${PWD}/query_templates/templates.lst -directory ${PWD}/query_templates -dialect cloudberry -scale ${GEN_DATA_SCALE} -RNGSEED ${RNGSEED} -verbose y -output ${PWD}"
   "${PWD}/dsqgen" -streams ${MULTI_USER_COUNT} \
     -input "${PWD}/query_templates/templates.lst" \
     -directory "${PWD}/query_templates" \
-    -dialect hashdata \
+    -dialect cloudberry \
     -scale ${GEN_DATA_SCALE} \
     -RNGSEED ${RNGSEED} \
     -verbose y \

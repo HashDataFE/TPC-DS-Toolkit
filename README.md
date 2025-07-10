@@ -1,4 +1,4 @@
-# Decision Support Benchmark for HashData Database
+# Decision Support Benchmark for Cloudberry Database
 
 [![TPC-DS](https://img.shields.io/badge/TPC--DS-v3.2.0-blue)](http://www.tpc.org/tpcds/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
@@ -15,7 +15,7 @@ This tool provides:
 - Detailed performance reporting
 
 ## Table of Contents
-- [Decision Support Benchmark for HashData Database](#decision-support-benchmark-for-hashdata-database)
+- [Decision Support Benchmark for Cloudberry Database](#decision-support-benchmark-for-cloudberry-database)
   - [Overview](#overview)
   - [Table of Contents](#table-of-contents)
   - [Quick Start](#quick-start)
@@ -60,10 +60,18 @@ vim tpcds_variables.sh
 ./run.sh
 ```
 
-### Steps by steps guides to run test on MPP Architecture with "local" mode
+### Guides to run test on MPP Architecture with "local" mode
 
 Fit for products: Cloudberry / Greenplum / SynxDB 4.x / HashData Lightning.
-Please refer to the [QuickStartCloudberry.md](tpcds_tools/QuickStartCloudberry.md).
+
+Please refer to the [QuickStartLocal.md](tpcds_tools/QuickStartLocal.md) for more details.
+
+### Guides to run test on Postgresql compatible database with "Cloud" mode
+
+Fit for products: Any products that is compatible with Postgresql using `psql` clients. Including Hashdata Enterprise, SynxDB Elastic.
+
+Please refer to the [QuickStartCloud.md](tpcds_tools/QuickStartCloud.md) for more details.
+
 
 ## Supported TPC-DS Versions
 
@@ -91,7 +99,7 @@ For running tests on the coordinator host:
 This mode leverages the MPP architecture to use data directories of segment nodes to generate data and load data using the 'gpfdist' protocol. More resources will be utilized for data generation and loading to accelerate the test process.
 
 1. Set `RUN_MODEL="local"` in `tpcds_variables.sh`
-2. Ensure you have a running HashData Database with `gpadmin` access
+2. Ensure you have a running Cloudberry Database with `gpadmin` access
 3. Create a `gpadmin` database
 4. Configure password-less `ssh` between `mdw` (coordinator) and segment nodes (`sdw1..n`)
 
@@ -113,8 +121,7 @@ With this mode, all data will be generated on the client machine, and data will 
    export CLIENT_GEN_PATH="/tmp/dsbenchmark" 
    export CLIENT_GEN_PARALLEL="2"
    ```
-
-All examples in this documentation use the standard host name convention of HashData with `mdw` for the coordinator node and `sdw1..n` for the segment nodes.
+> The following conventions are used in this document: mdw for the coordinator node, and sdw1..n for segment nodes.
 
 ### Introduction to TPC-DS-Toolkit Process.
 
@@ -158,7 +165,7 @@ Simply clone the repository with Git or download the source code from GitHub:
 
 ```bash
 ssh gpadmin@mdw
-git clone git@github.com:HashDataFE/TPC-DS-Toolkit.git
+git clone https://github.com/cloudberry-contrib/TPC-DS-Toolkit.git
 ```
 
 Place the folder under `/home/gpadmin/` and change ownership to gpadmin:

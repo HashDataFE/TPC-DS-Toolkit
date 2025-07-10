@@ -50,6 +50,7 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
 
     if [ "${DB_VERSION}" == "postgresql" ]; then
       DISTRIBUTED_BY=""
+      TABLE_ACCESS_METHOD=""
       TABLE_STORAGE_OPTIONS=""
     fi
 
