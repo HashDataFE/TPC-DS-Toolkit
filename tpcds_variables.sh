@@ -8,7 +8,7 @@ export RUN_MODEL="local"
 
 ## Default port is configured via the env setting of $PGPORT for user $ADMIN_USER
 ## Configure the host/port/user to connect to the cluster running the test. Can be left empty when all variables are set for the $ADMIN_USER
-## eg. export PSQL_OPTIONS="-h 2f445c57-c838-4038-a410-50ee36f9461d.cloud.hashdata.ai -p 5432"
+## eg. export PSQL_OPTIONS="-h 2f445c57-c838-4038-a410-50ee36f9461d.ai -p 5432"
 export PSQL_OPTIONS=""
 
 ## The following variables only take effect when RUN_MODEL is set to "cloud".
