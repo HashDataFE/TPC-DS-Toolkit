@@ -1,22 +1,21 @@
 # TPC-DS Benchmark Toolkit Quick Start Guide for Cloudberry/Greenplum
 
-This guide provides step-by-step instructions on how to set up and run the TPC-DS benchmark toolkit on a Cloudberry/Greenplum cluster.
-Also works for products with similar architectures: HashData Lightning, SynxDB 1.x, SynxDB 2.x, SynxDB 3.x and SynxDB 4.x
+This guide provides step-by-step instructions on how to set up and run the TPC-DS benchmark toolkit on a Cloudberry/Greenplum cluster. It also supports products with similar architectures: HashData Lightning, SynxDB 1.x, SynxDB 2.x, SynxDB 3.x, and SynxDB 4.x
 
 ## Prerequisites
-When access to a cluster coordinator node is available, it is best to run the test with "local" mode to leverage the MPP architecture to accelerate the data generation and data loading part.
+When access to a cluster coordinator node is available, it is best to run the test in "local" mode to leverage the MPP architecture for faster data generation and loading.
 
-If access to a cluster coordinator node is not available, the test can also be executed with "Cloud" mode, where data generation and data loading are done in the client host.
+If access to a cluster coordinator node is unavailable, the test can also be executed in "Cloud" mode, where data generation and loading occur on the client host.
 
 ### Running Tests on Coordinator Node (Recommended)
-1. Configure environment variables for the database administrator account (eg. gpadmin, which will be used in this guide).
-2. Since using direct psql login, it's advised to create a gpadmin database.
+1. Configure environment variables for the database administrator account (e.g., gpadmin, used in this guide).
+2. Since we'll use direct psql login, it's advisable to create a gpadmin database.
 
 ### Running Tests on Remote Client Host
-1. psql client installed with passwordless access for remote cluster (.pgpass setup properly)
-2. gpadmin database is created
+1. psql client installed with passwordless access to the remote cluster (.pgpass configured properly)
+2. "PSQL_OPTIONS" MUST be configured properly in tpcds_variables.sh file.
 
-> Following conventions are used in this doc: mdw for coordinator node, and sdw1..n for segment nodes.
+> The following conventions are used in this document: mdw for the coordinator node, and sdw1..n for segment nodes.
 
 ## Download and Installation
 
@@ -25,7 +24,7 @@ Download the toolkit package:
 https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.0.zip
 
 ### Installation
-Place the folder under /home/gpadmin/ and change the owner to gpadmin:
+Place the folder in the gpadmin home directory and update ownership:
 
 ```bash
 unzip TPC-DS-Toolkit-1.0.zip
@@ -92,9 +91,12 @@ export RUN_MULTI_USER="true"
 
 ## Line 79: Generate multi-user test results to the database and print out logs.
 export RUN_MULTI_USER_REPORTS="true"
+## Line 91: Sets memory per statement for multi-user tests, for 5 streams with 16G of max_statement_mem, 3GB is set.
+export STATEMENT_MEM_MULTI_USER="3GB"
 ```
 
-For repeating test runs, the following parameters can be adjusted to skip certain steps to save time:
+For repeating test runs, the following parameters can be adjusted to skip certain steps to save time.
+
 For example: to skip data generation and data loading steps, set following parameters to false:
 
 ```bash

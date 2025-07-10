@@ -93,7 +93,7 @@ This mode leverages the MPP architecture to use data directories of segment node
 1. Set `RUN_MODEL="local"` in `tpcds_variables.sh`
 2. Ensure you have a running HashData Database with `gpadmin` access
 3. Create a `gpadmin` database
-4. Configure password-less `ssh` between `mdw` (master) and segment nodes (`sdw1..n`)
+4. Configure password-less `ssh` between `mdw` (coordinator) and segment nodes (`sdw1..n`)
 
 ### Remote Client Setup  
 For running tests from a remote client:
@@ -114,7 +114,7 @@ With this mode, all data will be generated on the client machine, and data will 
    export CLIENT_GEN_PARALLEL="2"
    ```
 
-All examples in this documentation use the standard host name convention of HashData with `mdw` for the master node and `sdw1..n` for the segment nodes.
+All examples in this documentation use the standard host name convention of HashData with `mdw` for the coordinator node and `sdw1..n` for the segment nodes.
 
 ### Introduction to TPC-DS-Toolkit Process.
 
@@ -169,7 +169,7 @@ chown -R gpadmin:gpadmin TPC-DS-Toolkit
 
 ## Usage
 
-To run the benchmark, login as `gpadmin` on the master node (`mdw`):
+To run the benchmark, login as `gpadmin` on the coordinator node (`mdw`):
 
 ```bash
 ssh gpadmin@mdw
