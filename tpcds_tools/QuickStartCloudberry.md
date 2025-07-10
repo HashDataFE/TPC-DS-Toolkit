@@ -92,9 +92,12 @@ export RUN_MULTI_USER="true"
 
 ## Line 79: Generate multi-user test results to the database and print out logs.
 export RUN_MULTI_USER_REPORTS="true"
+## Line 91: Sets memory per statement for multi-user tests, for 5 streams with 16G of max_statement_mem, 3GB is set.
+export STATEMENT_MEM_MULTI_USER="3GB"
 ```
 
-For repeating test runs, the following parameters can be adjusted to skip certain steps to save time:
+For repeating test runs, the following parameters can be adjusted to skip certain steps to save time.
+
 For example: to skip data generation and data loading steps, set following parameters to false:
 
 ```bash
