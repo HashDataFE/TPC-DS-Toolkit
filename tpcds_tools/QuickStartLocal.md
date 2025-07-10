@@ -1,4 +1,4 @@
-# TPC-DS Benchmark Toolkit Quick Start Guide for Cloudberry/Greenplum
+# TPC-DS Benchmark Toolkit Quick Start Guide for Local
 
 This guide provides step-by-step instructions on how to set up and run the TPC-DS benchmark toolkit on a Cloudberry/Greenplum cluster. It also supports products with similar architectures: HashData Lightning, SynxDB 1.x, SynxDB 2.x, SynxDB 3.x, and SynxDB 4.x
 
@@ -17,7 +17,7 @@ If you don't have access to a cluster coordinator node, the test can also be exe
 
 ### Download
 Download the toolkit package:
-https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.0.zip
+https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.1.zip
 
 ### Installation
 Place the folder in the gpadmin home directory and update ownership:
@@ -69,7 +69,7 @@ export GEN_DATA_SCALE="1000"
 export STATEMENT_MEM="15GB"
 ```
 
-> Please be aware that, default value for these parameters might be changed in different toolkit versions, this guide is based on TPC-DS Toolkit v1.0.
+> Please be aware that, default value for these parameters might be changed in different toolkit versions, this guide is based on TPC-DS Toolkit v1.1.
 
 Parameters need to be adjusted to run multi-user tests (Throughput test).
 For example: to run a 5 streams throughput test.
