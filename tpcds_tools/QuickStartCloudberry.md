@@ -1,0 +1,127 @@
+# TPC-DS Benchmark Toolkit Quick Start Guide for Cloudberry/Greenplum
+
+This guide provides step-by-step instructions on how to set up and run the TPC-DS benchmark toolkit on a Cloudberry/Greenplum cluster.
+Also works for products with similar architectures: HashData Lightning, SynxDB 1.x, SynxDB 2.x, SynxDB 3.x and SynxDB 4.x
+
+## Prerequisites
+When access to a cluster coordinator node is available, it is best to run the test with "local" mode to leverage the MPP architecture to accelerate the data generation and data loading part.
+
+If access to a cluster coordinator node is not available, the test can also be executed with "Cloud" mode, where data generation and data loading are done in the client host.
+
+### Running Tests on Coordinator Node (Recommended)
+1. Configure environment variables for the database administrator account (eg. gpadmin, which will be used in this guide).
+2. Since using direct psql login, it's advised to create a gpadmin database.
+
+### Running Tests on Remote Client Host
+1. psql client installed with passwordless access for remote cluster (.pgpass setup properly)
+2. gpadmin database is created
+
+> Following conventions are used in this doc: mdw for coordinator node, and sdw1..n for segment nodes.
+
+## Download and Installation
+
+### Download
+Download the toolkit package:
+https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.0.zip
+
+### Installation
+Place the folder under /home/gpadmin/ and change the owner to gpadmin:
+
+```bash
+unzip TPC-DS-Toolkit-1.0.zip
+mv TPC-DS-Toolkit-1.0 /home/gpadmin/
+chown -R gpadmin.gpadmin TPC-DS-Toolkit-1.0
+```
+
+### Configure database parameters
+
+```bash
+ssh gpadmin@mdw
+cd ~/TPC-DS-Toolkit-1.0/tpcds_tools
+vim tpcds_set_gucs.sh
+```
+Following parameters need to reviewed and adjusted based on your cluster configuration:
+
+```bash
+#gp_vmem_protect_limit setting, rule of thumb: segment host got 128GB memory with 8 primary segments deployed, this parameter can be set to 16GB.
+gpconfig -c gp_vmem_protect_limit -v 16384
+#Same values as gp_vmem_protect_limit
+gpconfig -c max_statement_mem -v 16384000
+```
+Execute the following command to make the parameters take effect.
+
+```bash
+sh tpcds_set_gucs.sh
+gpstop -afr
+```
+
+### Configure the toolkit parameter file
+
+Before running the tests, we need to review the parameter file and adjust the parameters as needed.
+
+For example: to run a 1TB Power test(Single user test), with cluster with 8 primary segments and 128GB memory per segment, following parameters need to be modified: 
+```bash
+ssh gpadmin@mdw
+cd ~/TPC-DS-Toolkit-1.0
+vim tpcds_variables.sh
+
+## Line 25: GEN_DATA_SCALE set to 1000, indicating generation of 1000GB test data
+export GEN_DATA_SCALE="1000"
+
+## Line 90: Sets memory per statement for single-user tests (This parameter should be set marginally lower than MAX_STATEMENT_MEM. Given MAX_STATEMENT_MEM=16GB, STATEMENT_MEM can be configured as 15GB.)
+export STATEMENT_MEM="15GB"
+```
+
+> Please be aware that, default value for these parameters might be changed in different toolkit versions, this guide is based on TPC-DS Toolkit v1.0.
+
+Parameters need to be adjusted to run multi-user tests (Throughput test).
+For example: to run a 5 streams throughput test.
+
+```bash
+ssh gpadmin@mdw
+cd ~/TPC-DS-Toolkit-1.0
+vim tpcds_variables.sh
+
+## Line 26: Number of concurrent users during throughput tests
+export MULTI_USER_COUNT="5"
+
+## Line 75: Runs the throughput test of the benchmark. This generates multiple query streams using `dsqgen`, which samples the database to find proper filters. For very large databases with many streams, this process can take hours just to generate the queries.
+export RUN_MULTI_USER="true"
+
+## Line 79: Generate multi-user test results to the database and print out logs.
+export RUN_MULTI_USER_REPORTS="true"
+```
+
+For repeating test runs, the following parameters can be adjusted to skip certain steps to save time:
+For example: to skip data generation and data loading steps, set following parameters to false:
+
+```bash
+ssh gpadmin@mdw
+cd ~/TPC-DS-Toolkit-1.0
+vim tpcds_variables.sh
+
+## Line 39: Generates flat files for the benchmark in parallel on all segment nodes. Files are stored under the `${PGDATA}/dsbenchmark` directory
+export RUN_GEN_DATA="false"
+export GEN_NEW_DATA="false"
+
+## Line 43: Sets up GUCs for the database and records segment configurations. Only required if the cluster is reconfigured
+export RUN_INIT="false"
+
+## Line 50: Recreates all schemas and tables (including external tables for loading). Set to `false` to keep existing data.
+export RUN_DDL="false"
+export DROP_EXISTING_TABLES="false"
+
+## Line 54: Loads data from flat files into tables and computes statistics
+export RUN_LOAD="false"
+```
+For more information, please refer to the [Readme](https://github.com/cloudberry-contrib/TPC-DS-Toolkit/blob/v1.0/README.md).
+
+### Execute the test
+
+To run the benchmark, login as gpadmin on mdw:
+
+```bash
+ssh gpadmin@mdw
+cd ~/TPC-DS-Toolkit-1.0
+./run.sh
+```

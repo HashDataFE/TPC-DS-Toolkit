@@ -54,11 +54,11 @@ export DROP_EXISTING_TABLES="true"
 export RUN_LOAD="true"
 ### How many parallel processes to load data, default is 2, max is 24.
 export LOAD_PARALLEL="2"
+export RUN_ANALYZE="true"
+export RUN_ANALYZE_PARALLEL="5"
 
 ## step 05_sql
 export RUN_SQL="true"
-export RUN_ANALYZE="true"
-export RUN_ANALYZE_PARALLEL="5"
 export RUN_QGEN="true"
 ## Set to true to generate queries for the TPC-DS benchmark.
 export UNIFY_QGEN_SEED="true"
