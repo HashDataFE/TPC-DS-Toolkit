@@ -50,16 +50,20 @@ This tool provides:
 
 ```bash
 # 1. Clone the repository
-git clone git@github.com:HashDataFE/TPC-DS-Toolkit.git
+git clone https://github.com/cloudberry-contrib/TPC-DS-Toolkit.git
 cd TPC-DS-Toolkit
 
 # 2. Configure your environment
-cp tpcds_variables.sh.template tpcds_variables.sh
 vim tpcds_variables.sh
 
 # 3. Run the benchmark
 ./run.sh
 ```
+
+### Steps by steps guides to run test on MPP Architecture with "local" mode
+
+Fit for products: Cloudberry / Greenplum / SynxDB 4.x / HashData Lightning.
+Please refer to the [QuickStartCloudberry.md](QuickStartCloudberry.md) file.
 
 ## Supported TPC-DS Versions
 
