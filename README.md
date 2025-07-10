@@ -112,6 +112,31 @@ With this mode, all data will be generated on the client machine, and data will 
 
 All examples in this documentation use the standard host name convention of HashData with `mdw` for the master node and `sdw1..n` for the segment nodes.
 
+### Introduction to TPC-DS-Toolkit Process.
+
+TPC-DS Tool Execution Process:
+1. Compile TPC-DS tools
+   - Build the benchmark toolkit from source code
+2. Generate test data
+   - Create datasets using dsdgen based on specified scale factor
+3. Initialize cluster
+   - Provision and configure the database cluster environment
+4. Initialize database objects
+   - Create schemas, tables, and indexes required for TPC-DS
+5. Load data
+   - Import generated datasets into the database.
+6. Single user test (Power test)
+   - Execute all 99 queries sequentially to measure single-threaded performance
+7. Single user reports
+   - Generate the result for single user test.
+8. Multi users test (Throughput test)
+   - Execute multiple queries concurrently to measure system throughput capacity.
+9. Multi user reports
+   - Generate the result for multi users test.
+10. Final score
+    - Generate performance metric combining power and throughput tests.
+
+
 ### TPC-DS Tools Dependencies
 
 Install the dependencies on `mdw` for compiling the `dsdgen` (data generation) and `dsqgen` (query generation) tools:
@@ -234,9 +259,9 @@ There are multiple steps in running the benchmark, controlled by these variables
 | `RUN_DDL`                 | `true`  | Recreates all schemas and tables (including external tables for loading). Set to `false` to keep existing data. |
 | `RUN_LOAD`                | `true`  | Loads data from flat files into tables and computes statistics. |
 | `RUN_SQL`                 | `true`  | Runs the power test of the benchmark. |
-| `RUN_SINGLE_USER_REPORTS` | `true`  | Uploads results to the database under the schema `tpcds_reports`. Required for the `RUN_SCORE` step. |
+| `RUN_SINGLE_USER_REPORTS` | `true`  | Generate results to the database under the schema `tpcds_reports`. Required for the `RUN_SCORE` step. |
 | `RUN_MULTI_USER`          | `true`  | Runs the throughput test of the benchmark. This generates multiple query streams using `dsqgen`, which samples the database to find proper filters. For very large databases with many streams, this process can take hours just to generate the queries. |
-| `RUN_MULTI_USER_REPORTS`  | `true`  | Uploads multi-user results to the database. |
+| `RUN_MULTI_USER_REPORTS`  | `true`  | Generate multi-user results to the database. |
 | `RUN_SCORE`               | `true`  | Computes the final `QphDS` score based on the benchmark standard. |
 
 **WARNING**: TPC-DS does not rely on the log folder to determine which steps to run or skip. It will only run the steps that are explicitly set to `true` in the `tpcds_variables.sh` file. If any necessary step is set to `false` but has never been executed before, the script will abort when it tries to access data that doesn't exist.
