@@ -50,6 +50,8 @@ gpconfig -c max_statement_mem -v 16384000
 ```
 Execute the following command to make the parameters take effect.
 
+> Please note that, some parameters might not be supported in earlier versions, some parameters might only be supported in SynxDB 4.x and HashData lightning 2.0.
+
 ```bash
 sh tpcds_set_gucs.sh
 gpstop -afr
