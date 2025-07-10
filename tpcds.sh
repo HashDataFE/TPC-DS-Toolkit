@@ -15,7 +15,7 @@ export TPC_DS_DIR
 log_time "TPC-DS test started"
 printf "\n"
 
-log_time "TPC-DS toolkit version is: V1.0_DEV_20250707"
+log_time "TPC-DS toolkit version is: V1.1"
 
 # Check that pertinent variables are set in the variable file.
 check_variables

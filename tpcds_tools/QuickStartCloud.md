@@ -1,4 +1,4 @@
-# TPC-DS Benchmark Toolkit Quick Start Guide for Cloudberry/Greenplum
+# TPC-DS Benchmark Toolkit Quick Start Guide for Cloud 
 
 This guide provides step-by-step instructions on how to set up and run the TPC-DS benchmark toolkit on postgresql compatible database. Including Hashdata Enterprise, SynxDB Elastic.
 
@@ -14,7 +14,7 @@ When you only have access to a psql client to connect to a postgresql compatible
 
 ### Download
 Download the toolkit package:
-https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.0.zip
+https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.1.zip
 
 ### Installation
 Place the folder in the home directory of the user who will run the tests and update ownership:
@@ -62,7 +62,7 @@ export TABLE_ACCESS_METHOD="USING PAX"
 export TABLE_STORAGE_OPTIONS="compresstype=zstd, compresslevel=5"
 ```
 
-> Please be aware that, default value for these parameters might be changed in different toolkit versions, this guide is based on TPC-DS Toolkit v1.0.
+> Please be aware that, default value for these parameters might be changed in different toolkit versions, this guide is based on TPC-DS Toolkit v1.1.
 
 Parameters need to be adjusted to run multi-user tests (Throughput test).
 For example: to run a 5 streams throughput test.
