@@ -63,7 +63,7 @@ vim tpcds_variables.sh
 ### Steps by steps guides to run test on MPP Architecture with "local" mode
 
 Fit for products: Cloudberry / Greenplum / SynxDB 4.x / HashData Lightning.
-Please refer to the [QuickStartCloudberry.md](QuickStartCloudberry.md) file.
+Please refer to the [QuickStartCloudberry.md](tpcds_tool/QuickStartCloudberry.md) file.
 
 ## Supported TPC-DS Versions
 
