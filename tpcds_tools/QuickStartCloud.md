@@ -49,8 +49,17 @@ export CLIENT_GEN_PARALLEL="2"
 ## Line 25: GEN_DATA_SCALE set to 1000, indicating generation of 1000GB test data
 export GEN_DATA_SCALE="1000"
 
-## Line 90: This parameter only works for Cloudberry based products, did not work for Postgresql. Consult your database admin to understand good value for this.
+## Line 87: Set this for HashData Enterprise / SynxDB Elastic. NO effect for Postgresql
+export RANDOM_DISTRIBUTION="true"
+
+## Line 90: Set this for HashData Enterprise / SynxDB Elastic. NO effect for Postgresql. Consult your database admin to understand good value for this. 
 export STATEMENT_MEM="1.9GB"
+
+## Line 104: Set this for HashData Enterprise / SynxDB Elastic. NO effect for Postgresql
+export TABLE_ACCESS_METHOD="USING PAX"
+
+## Line 111: Set this for HashData Enterprise / SynxDB Elastic. NO effect for Postgresql
+export TABLE_STORAGE_OPTIONS="compresstype=zstd, compresslevel=5"
 ```
 
 > Please be aware that, default value for these parameters might be changed in different toolkit versions, this guide is based on TPC-DS Toolkit v1.0.
@@ -71,7 +80,7 @@ export RUN_MULTI_USER="true"
 ## Line 79: Generate multi-user test results to the database and print out logs.
 export RUN_MULTI_USER_REPORTS="true"
 
-## Line 91: This parameter only works for Cloudberry based products, did not work for Postgresql. Consult your database admin to understand good value for this.
+## Line 91: Set this for HashData Enterprise / SynxDB Elastic. NO effect for Postgresql. Consult your database admin to understand good value for this. 
 export STATEMENT_MEM_MULTI_USER="1GB"
 ```
 
