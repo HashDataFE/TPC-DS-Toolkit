@@ -114,7 +114,7 @@ export DROP_EXISTING_TABLES="false"
 ## Line 54: Loads data from flat files into tables and computes statistics
 export RUN_LOAD="false"
 ```
-For more information, please refer to the [Readme](https://github.com/cloudberry-contrib/TPC-DS-Toolkit/blob/v1.0/README.md).
+For more information, please refer to the [README.md](../README.md).
 
 ### Execute the test
 
