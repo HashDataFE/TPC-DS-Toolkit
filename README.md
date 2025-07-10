@@ -60,10 +60,16 @@ vim tpcds_variables.sh
 ./run.sh
 ```
 
-### Steps by steps guides to run test on MPP Architecture with "local" mode
+### Guides to run test on MPP Architecture with "local" mode
 
 Fit for products: Cloudberry / Greenplum / SynxDB 4.x / HashData Lightning.
-Please refer to the [QuickStartCloudberry.md](tpcds_tools/QuickStartCloudberry.md).
+Please refer to the [QuickStartLocal.md](tpcds_tools/QuickStartLocal.md) for more details.
+
+### Guides to run test on Postgresql compatible database with "Cloud" mode
+
+Fit for products: Any products that is compatible with Postgresql using `psql` clients. Including Hashdata Enterprise, SynxDB Elastic.
+Please refer to the [QuickStartCloud.md](tpcds_tools/QuickStartCloud.md) for more details.
+
 
 ## Supported TPC-DS Versions
 

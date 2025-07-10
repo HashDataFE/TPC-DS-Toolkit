@@ -1,21 +1,14 @@
 # TPC-DS Benchmark Toolkit Quick Start Guide for Cloudberry/Greenplum
 
-This guide provides step-by-step instructions on how to set up and run the TPC-DS benchmark toolkit on a Cloudberry/Greenplum cluster. It also supports products with similar architectures: HashData Lightning, SynxDB 1.x, SynxDB 2.x, SynxDB 3.x, and SynxDB 4.x
+This guide provides step-by-step instructions on how to set up and run the TPC-DS benchmark toolkit on postgresql compatible database. Including Hashdata Enterprise, SynxDB Elastic.
 
 ## Prerequisites
-When you have access to a cluster coordinator node, running the test in "local" mode is recommended to leverage the MPP architecture for faster data generation and loading.
-
-If you don't have access to a cluster coordinator node, the test can also be executed in "Cloud" mode, where data generation and loading occur on the client host.
-
-### Running Tests on Coordinator Node (Recommended)
-1. Configure environment variables for the database administrator account (e.g., gpadmin, used in this guide).
-2. Since we'll use direct psql login, we recommend creating a gpadmin database.
+When you only have access to a psql client to connect to a postgresql compatible database, the test can be executed in "Cloud" mode, where data generation and loading occur on the client host.
 
 ### Running Tests on Remote Client Host
-1. A psql client installed with passwordless access to the remote cluster (.pgpass configured properly)
+1. A psql client installed with passwordless access to the remote database (.pgpass configured properly if necessary)
 2. "PSQL_OPTIONS" must be properly configured in the tpcds_variables.sh file.
 
-> The following conventions are used in this document: mdw for the coordinator node, and sdw1..n for segment nodes.
 
 ## Download and Installation
 
@@ -24,53 +17,40 @@ Download the toolkit package:
 https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.0.zip
 
 ### Installation
-Place the folder in the gpadmin home directory and update ownership:
+Place the folder in the home directory of the user who will run the tests and update ownership:
 
 ```bash
 unzip TPC-DS-Toolkit-1.0.zip
-mv TPC-DS-Toolkit-1.0 /home/gpadmin/
-chown -R gpadmin.gpadmin TPC-DS-Toolkit-1.0
-```
-
-### Configure database parameters
-
-```bash
-ssh gpadmin@mdw
-cd ~/TPC-DS-Toolkit-1.0/tpcds_tools
-vim tpcds_set_gucs.sh
-```
-Following parameters need to reviewed and adjusted based on your cluster configuration:
-
-```bash
-#gp_vmem_protect_limit setting, rule of thumb: segment host got 128GB memory with 8 primary segments deployed, this parameter can be set to 16GB.
-gpconfig -c gp_vmem_protect_limit -v 16384
-#Same values as gp_vmem_protect_limit
-gpconfig -c max_statement_mem -v 16384000
-```
-Execute the following command to make the parameters take effect.
-
-> Please note that, some parameters might not be supported in earlier versions, some parameters might only be supported in SynxDB 4.x and HashData lightning 2.0.
-
-```bash
-sh tpcds_set_gucs.sh
-gpstop -afr
+mv TPC-DS-Toolkit-1.0 /home/<user>/
+chown -R <user>.<user> TPC-DS-Toolkit-1.0
 ```
 
 ### Configure the toolkit parameter file
 
 Before running the tests, we need to review the parameter file and adjust the parameters as needed.
 
-For example: to run a 1TB Power test(Single user test), with cluster with 8 primary segments and 128GB memory per segment, following parameters need to be modified: 
+For example: to run a 1TB Power test(Single user test), in a Cloudberry based cluster, following parameters need to be modified: 
 ```bash
-ssh gpadmin@mdw
 cd ~/TPC-DS-Toolkit-1.0
 vim tpcds_variables.sh
+
+## Line 7: Change RUN_MODEL to "cloud"
+export RUN_MODEL="cloud"
+
+## Line 12: Set the psql options for the client host, and make sure .pgpass is properly set to avoid password prompt.
+export PSQL_OPTIONS="-h mdw -p 5432 -U gpadmin -d cbdb"
+
+## Line 13: Set the path on the client host where the data is generated. Make sure the path exists and has enough space.
+export CLIENT_GEN_PATH="/tmp/dsbenchmark"
+
+## Line 14: Set the parallelism for data generation on the client host.
+export CLIENT_GEN_PARALLEL="2"
 
 ## Line 25: GEN_DATA_SCALE set to 1000, indicating generation of 1000GB test data
 export GEN_DATA_SCALE="1000"
 
-## Line 90: Sets memory per statement for single-user tests (This parameter should be set marginally lower than MAX_STATEMENT_MEM. Given MAX_STATEMENT_MEM=16GB, STATEMENT_MEM can be configured as 15GB.)
-export STATEMENT_MEM="15GB"
+## Line 90: This parameter only works for Cloudberry based products, did not work for Postgresql. Consult your database admin to understand good value for this.
+export STATEMENT_MEM="1.9GB"
 ```
 
 > Please be aware that, default value for these parameters might be changed in different toolkit versions, this guide is based on TPC-DS Toolkit v1.0.
@@ -79,7 +59,6 @@ Parameters need to be adjusted to run multi-user tests (Throughput test).
 For example: to run a 5 streams throughput test.
 
 ```bash
-ssh gpadmin@mdw
 cd ~/TPC-DS-Toolkit-1.0
 vim tpcds_variables.sh
 
@@ -91,8 +70,9 @@ export RUN_MULTI_USER="true"
 
 ## Line 79: Generate multi-user test results to the database and print out logs.
 export RUN_MULTI_USER_REPORTS="true"
-## Line 91: Sets memory per statement for multi-user tests, for 5 streams with 16G of max_statement_mem, 3GB is set.
-export STATEMENT_MEM_MULTI_USER="3GB"
+
+## Line 91: This parameter only works for Cloudberry based products, did not work for Postgresql. Consult your database admin to understand good value for this.
+export STATEMENT_MEM_MULTI_USER="1GB"
 ```
 
 For repeating test runs, the following parameters can be adjusted to skip certain steps to save time.
@@ -100,7 +80,6 @@ For repeating test runs, the following parameters can be adjusted to skip certai
 For example: to skip data generation and data loading steps, set following parameters to false:
 
 ```bash
-ssh gpadmin@mdw
 cd ~/TPC-DS-Toolkit-1.0
 vim tpcds_variables.sh
 
@@ -122,10 +101,9 @@ For more information, please refer to the [Readme](https://github.com/cloudberry
 
 ### Execute the test
 
-To run the benchmark, login as gpadmin on mdw:
+To run the benchmark, executed following command on client host:
 
 ```bash
-ssh gpadmin@mdw
 cd ~/TPC-DS-Toolkit-1.0
 ./run.sh
 ```
