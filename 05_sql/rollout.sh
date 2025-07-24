@@ -10,6 +10,14 @@ printf "\n"
 
 init_log ${step}
 
+log_time "Grant schema privileges to ${BENCH_ROLE}"
+GrantSchemaPrivileges="GRANT ALL PRIVILEGES ON SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
+GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
+log_time "Grant schema privileges to role ${BENCH_ROLE}"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantSchemaPrivileges}"
+log_time "Grant table privileges to role ${BENCH_ROLE}"
+psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantTablePrivileges}"
+
 if [ "${RUN_QGEN}" == true ]; then
   log_time "Generate queries based on scale"
   cd "${PWD}"
