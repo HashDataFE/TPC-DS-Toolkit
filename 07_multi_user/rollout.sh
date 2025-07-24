@@ -8,14 +8,15 @@ step="multi_user"
 log_time "Step ${step} started"
 printf "\n"
 
-log_time "Grant schema privileges to ${BENCH_ROLE}"
-GrantSchemaPrivileges="GRANT ALL PRIVILEGES ON SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
-GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
-log_time "Grant schema privileges to role ${BENCH_ROLE}"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantSchemaPrivileges}"
-log_time "Grant table privileges to role ${BENCH_ROLE}"
-psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantTablePrivileges}"
-
+if [ "${DB_CURRENT_USER}" != "${BENCH_ROLE}" ]; then
+  log_time "Grant schema privileges to ${BENCH_ROLE}"
+  GrantSchemaPrivileges="GRANT ALL PRIVILEGES ON SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
+  GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
+  log_time "Grant schema privileges to role ${BENCH_ROLE}"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantSchemaPrivileges}"
+  log_time "Grant table privileges to role ${BENCH_ROLE}"
+  psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantTablePrivileges}"
+fi
 # define data loding log file
 LOG_FILE="${TPC_DS_DIR}/log/rollout_load.log"
 

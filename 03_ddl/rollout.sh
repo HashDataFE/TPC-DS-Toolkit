@@ -154,16 +154,17 @@ if [ "${DROP_EXISTING_TABLES}" == "true" ]; then
   fi
 fi
 
-DropRoleDenp="drop owned by ${BENCH_ROLE} cascade"
-DropRole="DROP ROLE IF EXISTS ${BENCH_ROLE}"
-CreateRole="CREATE ROLE ${BENCH_ROLE}"
-GrantSchemaPrivileges="GRANT ALL PRIVILEGES ON SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
-GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
-echo "rm -f ${PWD}/GrantTablePrivileges.sql"
-rm -f ${PWD}/GrantTablePrivileges.sql
-psql ${PSQL_OPTIONS} -tc "SELECT format('GRANT ALL PRIVILEGES ON TABLE %I.%I TO %I;', '${DB_SCHEMA_NAME}', tablename, '${BENCH_ROLE}') FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}'" > ${PWD}/GrantTablePrivileges.sql
+# Check if current user matches BENCH_ROLE
+if [ "${DB_CURRENT_USER}" != "${BENCH_ROLE}" ]; then
 
-if [ "${BENCH_ROLE}" != "gpadmin" ]; then
+  DropRoleDenp="drop owned by ${BENCH_ROLE} cascade"
+  DropRole="DROP ROLE IF EXISTS ${BENCH_ROLE}"
+  CreateRole="CREATE ROLE ${BENCH_ROLE}"
+  GrantSchemaPrivileges="GRANT ALL PRIVILEGES ON SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
+  GrantTablePrivileges="GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA ${DB_SCHEMA_NAME} TO ${BENCH_ROLE}"
+  echo "rm -f ${PWD}/GrantTablePrivileges.sql"
+  rm -f ${PWD}/GrantTablePrivileges.sql
+  psql ${PSQL_OPTIONS} -tc "SELECT format('GRANT ALL PRIVILEGES ON TABLE %I.%I TO %I;', '${DB_SCHEMA_NAME}', tablename, '${BENCH_ROLE}') FROM pg_tables WHERE schemaname='${DB_SCHEMA_NAME}'" > ${PWD}/GrantTablePrivileges.sql
   # Check if role exists in PostgreSQL
 
   EXISTS=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -q -A -t -c "SELECT 1 FROM pg_roles WHERE rolname='${BENCH_ROLE}'")
@@ -186,6 +187,7 @@ if [ "${BENCH_ROLE}" != "gpadmin" ]; then
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -c "${GrantTablePrivileges}"
   log_time "Grant table privileges to role ${BENCH_ROLE}"
   psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=0 -q -P pager=off -f ${PWD}/GrantTablePrivileges.sql
+
 fi
 
 echo "Finished ${step}"
