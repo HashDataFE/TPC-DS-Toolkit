@@ -83,22 +83,13 @@ function source_bashrc() {
     # don't fail if an error is happening in the admin's profile
     # shellcheck disable=SC1090
     source ${startup_file} || true
-  fi
-  # 根据版本选择要检查的环境文件
-  if [ "$VERSION" = "synxdb" ]; then
-    target_file="cluster_env.sh"
+    # Check if GPHOME is set and not empty
+    if [ -z "$GPHOME" ]; then
+      echo "Error: \$GPHOME is not found. Please set .bashrc correctly for ${ADMIN_USER} to source the database environment.Exiting."
+      exit 1
+    fi
   else
-    target_file="greenplum_path.sh"
-  fi
-  
-  count=$(egrep -c "^[^#]*source .*/${target_file}|^[^#]*\. .*/${target_file}" ${startup_file})
-  if [ ${count} -eq 0 ]; then
-    echo "${HOME}/.bashrc does not contain ${target_file}"
-    echo "Please update your ${startup_file} for ${ADMIN_USER} and try again."
-    exit 1
-  elif [ ${count} -gt 1 ]; then
-    echo "${HOME}/.bashrc contains multiple ${target_file} entries"
-    echo "Please update your ${startup_file} for ${ADMIN_USER} and try again."
+    echo "Error: ${startup_file} does not exist. Please ensure that this file is correctly set before running TPC-DS. Exiting."
     exit 1
   fi
 }
