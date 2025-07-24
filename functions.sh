@@ -132,27 +132,40 @@ function get_version() {
   VERSION=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "
     SELECT 
       CASE 
-        WHEN POSITION('Greenplum Database 4.3' IN version) > 0 THEN 'gpdb_4_3'
-        WHEN POSITION('Greenplum Database 5' IN version) > 0 THEN 'gpdb_5'
-        WHEN POSITION('Greenplum Database 6' IN version) > 0 THEN 'gpdb_6'
-        WHEN POSITION('Greenplum Database 7' IN version) > 0 THEN 'gpdb_7'
-        WHEN POSITION('Cloudberry' IN version) > 0 AND 
-             POSITION('Lightning' IN version) > 0 THEN 'lightning'
-        WHEN POSITION('Cloudberry' IN version) > 0 AND 
-             POSITION('synxdb' IN version) > 0 THEN 'synxdb'
-        WHEN POSITION('Cloudberry' IN version) > 0 THEN 'cbdb'
-        WHEN POSITION('PostgreSQL' IN version) > 0 AND 
-             POSITION('Greenplum' IN version) = 0 AND 
-             POSITION('Cloudberry' IN version) = 0 AND
-             POSITION('Lightning' IN version) = 0 THEN 'postgresql'
+        WHEN POSITION('greenplum database 4.3' IN version) > 0 THEN 'gpdb_4_3'
+        WHEN POSITION('greenplum database 5' IN version) > 0 AND 
+             POSITION('synxdb' IN version) = 0 THEN 'gpdb_5'
+        WHEN POSITION('greenplum database 6' IN version) > 0 AND
+             POSITION('synxdb' IN version) = 0 THEN 'gpdb_6'
+        WHEN POSITION('greenplum database 7' IN version) > 0 AND
+             POSITION('synxdb' IN version) = 0 THEN 'gpdb_7'
+        WHEN POSITION('greenplum database 5' IN version) > 0 AND 
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb_1'
+        WHEN POSITION('greenplum database 6' IN version) > 0 AND
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb_2'
+        WHEN POSITION('greenplum database 7' IN version) > 0 AND
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb_3'
+        WHEN POSITION('cloudberry' IN version) > 0 AND 
+             POSITION('lightning' IN version) > 0 THEN 'lightning'
+        WHEN POSITION('cloudberry' IN version) > 0 AND 
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb_4'
+        WHEN POSITION('cloudberry' IN version) > 0 AND
+             POSITION('synxdb' IN version) = 0 AND 
+             POSITION('lightning' IN version) = 0 THEN 'cbdb'
+        WHEN POSITION('postgresql' IN version) > 0 AND 
+             POSITION('greenplum' IN version) = 0 AND 
+             POSITION('cloudberry' IN version) = 0 AND
+             POSITION('lightning' IN version) = 0 AND
+             POSITION('synxdb' IN version) = 0 THEN 'postgresql'
         ELSE 'unknown'
       END 
-    FROM version();
+    FROM lower(version()) as version;
   ")
-
+  
   VERSION_FULL=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "SELECT version();")
 }
 export -f get_version
+
 
 function init_log() {
   logfile=rollout_${1}.log
