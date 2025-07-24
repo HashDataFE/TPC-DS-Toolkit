@@ -156,7 +156,7 @@ fi
 
 # Check if current user matches BENCH_ROLE
 if [ "${DB_CURRENT_USER}" != "${BENCH_ROLE}" ]; then
-
+  log_time "Current user ${DB_CURRENT_USER} does not match BENCH_ROLE ${BENCH_ROLE}."
   DropRoleDenp="drop owned by ${BENCH_ROLE} cascade"
   DropRole="DROP ROLE IF EXISTS ${BENCH_ROLE}"
   CreateRole="CREATE ROLE ${BENCH_ROLE}"
