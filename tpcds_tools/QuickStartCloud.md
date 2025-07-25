@@ -14,15 +14,15 @@ When you only have access to a psql client to connect to a postgresql compatible
 
 ### Download
 Download the toolkit package:
-https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.1.zip
+https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.2.zip
 
 ### Installation
 Place the folder in the home directory of the user who will run the tests and update ownership:
 
 ```bash
-unzip TPC-DS-Toolkit-1.0.zip
-mv TPC-DS-Toolkit-1.0 /home/<user>/
-chown -R <user>.<user> TPC-DS-Toolkit-1.0
+unzip TPC-DS-Toolkit-1.2.zip
+mv TPC-DS-Toolkit-1.2 /home/<user>/
+chown -R <user>.<user> TPC-DS-Toolkit-1.2
 ```
 
 ### Configure the toolkit parameter file
@@ -31,7 +31,7 @@ Before running the tests, we need to review the parameter file and adjust the pa
 
 For example: to run a 1TB Power test(Single user test), in a Cloudberry based cluster, following parameters need to be modified: 
 ```bash
-cd ~/TPC-DS-Toolkit-1.0
+cd ~/TPC-DS-Toolkit-1.2
 vim tpcds_variables.sh
 
 ## Line 7: Change RUN_MODEL to "cloud"
@@ -68,7 +68,7 @@ Parameters need to be adjusted to run multi-user tests (Throughput test).
 For example: to run a 5 streams throughput test.
 
 ```bash
-cd ~/TPC-DS-Toolkit-1.0
+cd ~/TPC-DS-Toolkit-1.2
 vim tpcds_variables.sh
 
 ## Line 26: Number of concurrent users during throughput tests
@@ -89,7 +89,7 @@ For repeating test runs, the following parameters can be adjusted to skip certai
 For example: to skip data generation and data loading steps, set following parameters to false:
 
 ```bash
-cd ~/TPC-DS-Toolkit-1.0
+cd ~/TPC-DS-Toolkit-1.2
 vim tpcds_variables.sh
 
 ## Line 39: Generates flat files for the benchmark in parallel on all segment nodes. Files are stored under the `${PGDATA}/dsbenchmark` directory
@@ -113,6 +113,6 @@ For more information, please refer to the [README.md](../README.md).
 To run the benchmark, executed following command on client host:
 
 ```bash
-cd ~/TPC-DS-Toolkit-1.0
+cd ~/TPC-DS-Toolkit-1.2
 ./run.sh
 ```
