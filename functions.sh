@@ -83,22 +83,13 @@ function source_bashrc() {
     # don't fail if an error is happening in the admin's profile
     # shellcheck disable=SC1090
     source ${startup_file} || true
-  fi
-  # 根据版本选择要检查的环境文件
-  if [ "$VERSION" = "synxdb" ]; then
-    target_file="cluster_env.sh"
+    # Check if GPHOME is set and not empty
+    if [ -z "$GPHOME" ]; then
+      echo "Error: \$GPHOME is not found. Please set .bashrc correctly for ${ADMIN_USER} to source the database environment.Exiting."
+      exit 1
+    fi
   else
-    target_file="greenplum_path.sh"
-  fi
-  
-  count=$(egrep -c "^[^#]*source .*/${target_file}|^[^#]*\. .*/${target_file}" ${startup_file})
-  if [ ${count} -eq 0 ]; then
-    echo "${HOME}/.bashrc does not contain ${target_file}"
-    echo "Please update your ${startup_file} for ${ADMIN_USER} and try again."
-    exit 1
-  elif [ ${count} -gt 1 ]; then
-    echo "${HOME}/.bashrc contains multiple ${target_file} entries"
-    echo "Please update your ${startup_file} for ${ADMIN_USER} and try again."
+    echo "Error: ${startup_file} does not exist. Please ensure that this file is correctly set before running TPC-DS. Exiting."
     exit 1
   fi
 }
@@ -141,27 +132,40 @@ function get_version() {
   VERSION=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "
     SELECT 
       CASE 
-        WHEN POSITION('Greenplum Database 4.3' IN version) > 0 THEN 'gpdb_4_3'
-        WHEN POSITION('Greenplum Database 5' IN version) > 0 THEN 'gpdb_5'
-        WHEN POSITION('Greenplum Database 6' IN version) > 0 THEN 'gpdb_6'
-        WHEN POSITION('Greenplum Database 7' IN version) > 0 THEN 'gpdb_7'
-        WHEN POSITION('Cloudberry' IN version) > 0 AND 
-             POSITION('Lightning' IN version) > 0 THEN 'lightning'
-        WHEN POSITION('Cloudberry' IN version) > 0 AND 
-             POSITION('synxdb' IN version) > 0 THEN 'synxdb'
-        WHEN POSITION('Cloudberry' IN version) > 0 THEN 'cbdb'
-        WHEN POSITION('PostgreSQL' IN version) > 0 AND 
-             POSITION('Greenplum' IN version) = 0 AND 
-             POSITION('Cloudberry' IN version) = 0 AND
-             POSITION('Lightning' IN version) = 0 THEN 'postgresql'
+        WHEN POSITION('greenplum database 4.3' IN version) > 0 THEN 'gpdb_4_3'
+        WHEN POSITION('greenplum database 5' IN version) > 0 AND 
+             POSITION('synxdb' IN version) = 0 THEN 'gpdb_5'
+        WHEN POSITION('greenplum database 6' IN version) > 0 AND
+             POSITION('synxdb' IN version) = 0 THEN 'gpdb_6'
+        WHEN POSITION('greenplum database 7' IN version) > 0 AND
+             POSITION('synxdb' IN version) = 0 THEN 'gpdb_7'
+        WHEN POSITION('greenplum database 5' IN version) > 0 AND 
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb_1'
+        WHEN POSITION('greenplum database 6' IN version) > 0 AND
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb_2'
+        WHEN POSITION('greenplum database 7' IN version) > 0 AND
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb_3'
+        WHEN POSITION('cloudberry' IN version) > 0 AND 
+             POSITION('lightning' IN version) > 0 THEN 'lightning'
+        WHEN POSITION('cloudberry' IN version) > 0 AND 
+             POSITION('synxdb' IN version) > 0 THEN 'synxdb_4'
+        WHEN POSITION('cloudberry' IN version) > 0 AND
+             POSITION('synxdb' IN version) = 0 AND 
+             POSITION('lightning' IN version) = 0 THEN 'cbdb'
+        WHEN POSITION('postgresql' IN version) > 0 AND 
+             POSITION('greenplum' IN version) = 0 AND 
+             POSITION('cloudberry' IN version) = 0 AND
+             POSITION('lightning' IN version) = 0 AND
+             POSITION('synxdb' IN version) = 0 THEN 'postgresql'
         ELSE 'unknown'
       END 
-    FROM version();
+    FROM lower(version()) as version;
   ")
-
+  
   VERSION_FULL=$(psql ${PSQL_OPTIONS} -v ON_ERROR_STOP=1 -t -A -c "SELECT version();")
 }
 export -f get_version
+
 
 function init_log() {
   logfile=rollout_${1}.log
