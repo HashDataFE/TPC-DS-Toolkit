@@ -11,15 +11,6 @@ fi
 ################################################################################
 ####  Unexported functions  ####################################################
 ################################################################################
-function check_variable() {
-  local var_name="${1}"
-  shift
-
-  if [ ! -n "${!var_name}" ]; then
-    echo "${var_name} is not defined in ${VARS_FILE}. Exiting."
-    exit 1
-  fi
-}
 
 function check_variables() {
   echo "############################################################################"
@@ -51,6 +42,7 @@ function check_variables() {
 
   if [ ${#missing_vars[@]} -ne 0 ]; then
     echo "The following required variables are missing or empty: ${missing_vars[*]}"
+    echo "Please check the ${VARS_FILE}, verify that the database is up and running and psql can connect to the database."
     exit 1
   fi
 }
