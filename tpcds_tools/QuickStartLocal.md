@@ -17,22 +17,22 @@ If you don't have access to a cluster coordinator node, the test can also be exe
 
 ### Download
 Download the toolkit package:
-https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.2.zip
+https://github.com/cloudberry-contrib/TPC-DS-Toolkit/archive/refs/tags/v1.3.zip
 
 ### Installation
 Place the folder in the gpadmin home directory and update ownership:
 
 ```bash
-unzip TPC-DS-Toolkit-1.2.zip
-mv TPC-DS-Toolkit-1.2 /home/gpadmin/
-chown -R gpadmin.gpadmin TPC-DS-Toolkit-1.2
+unzip TPC-DS-Toolkit-1.3.zip
+mv TPC-DS-Toolkit-1.3 /home/gpadmin/
+chown -R gpadmin.gpadmin TPC-DS-Toolkit-1.3
 ```
 
 ### Configure database parameters
 
 ```bash
 ssh gpadmin@mdw
-cd ~/TPC-DS-Toolkit-1.2/tpcds_tools
+cd ~/TPC-DS-Toolkit-1.3/tpcds_tools
 vim tpcds_set_gucs.sh
 ```
 Following parameters need to reviewed and adjusted based on your cluster configuration:
@@ -59,7 +59,7 @@ Before running the tests, we need to review the parameter file and adjust the pa
 For example: to run a 1TB Power test(Single user test), with cluster with 8 primary segments and 128GB memory per segment, following parameters need to be modified: 
 ```bash
 ssh gpadmin@mdw
-cd ~/TPC-DS-Toolkit-1.2
+cd ~/TPC-DS-Toolkit-1.3
 vim tpcds_variables.sh
 
 ## Line 25: GEN_DATA_SCALE set to 1000, indicating generation of 1000GB test data
@@ -76,7 +76,7 @@ For example: to run a 5 streams throughput test.
 
 ```bash
 ssh gpadmin@mdw
-cd ~/TPC-DS-Toolkit-1.2
+cd ~/TPC-DS-Toolkit-1.3
 vim tpcds_variables.sh
 
 ## Line 26: Number of concurrent users during throughput tests
@@ -97,7 +97,7 @@ For example: to skip data generation and data loading steps, set following param
 
 ```bash
 ssh gpadmin@mdw
-cd ~/TPC-DS-Toolkit-1.2
+cd ~/TPC-DS-Toolkit-1.3
 vim tpcds_variables.sh
 
 ## Line 39: Generates flat files for the benchmark in parallel on all segment nodes. Files are stored under the `${PGDATA}/dsbenchmark` directory
@@ -122,6 +122,6 @@ To run the benchmark, login as gpadmin on mdw:
 
 ```bash
 ssh gpadmin@mdw
-cd ~/TPC-DS-Toolkit-1.2
+cd ~/TPC-DS-Toolkit-1.3
 ./run.sh
 ```

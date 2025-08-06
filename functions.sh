@@ -11,15 +11,6 @@ fi
 ################################################################################
 ####  Unexported functions  ####################################################
 ################################################################################
-function check_variable() {
-  local var_name="${1}"
-  shift
-
-  if [ ! -n "${!var_name}" ]; then
-    echo "${var_name} is not defined in ${VARS_FILE}. Exiting."
-    exit 1
-  fi
-}
 
 function check_variables() {
   echo "############################################################################"
@@ -51,6 +42,7 @@ function check_variables() {
 
   if [ ${#missing_vars[@]} -ne 0 ]; then
     echo "The following required variables are missing or empty: ${missing_vars[*]}"
+    echo "Please check the ${VARS_FILE}, verify that the database is up and running and psql can connect to the database."
     exit 1
   fi
 }
@@ -115,9 +107,9 @@ function get_gpfdist_port() {
     primary_base=$(echo ${all_ports} | awk -F '|' '{print $1}' | head -c1)
     mirror_base=$(echo $all_ports | awk -F '|' '{print $2}' | head -c1)
 
-    for i in $(seq 2 6); do
+    for i in $(seq 3 6); do
       if [ "${primary_base}" -ne "${i}" ] && [ "$mirror_base" -ne "${i}" ]; then
-        GPFDIST_PORT="${i}4660"
+        GPFDIST_PORT="${i}888"
         export GPFDIST_PORT
         break
       fi
