@@ -334,6 +334,14 @@ For optimal performance:
    export ENABLE_VECTORIZATION="on"
    ```
 
+5. **Optimizer Settings** (for supported systems)
+
+   ```bash
+   # Adjust optimizer settings in 01_gen_data/optimizer.txt
+   # Turn ORCA on/off for each queries by setting in this file
+   # After changing the settings, make sure to run the QGEN to generate the queries with the new settings.
+   ```
+
 ## Benchmark Modifications
 
 The TPC-DS queries were modified in the following ways to ensure compatibility:
