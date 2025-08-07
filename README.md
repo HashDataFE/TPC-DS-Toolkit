@@ -226,8 +226,8 @@ export TABLE_ACCESS_METHOD="USING ao_column"  # Available options:
                                        # - pax: PAX storage format (Cloudberry 2.0/HashData Lightning only)
 
 export TABLE_STORAGE_OPTIONS="WITH (compresstype=zstd, compresslevel=5)"  # Compression settings:
-                                                                         # - zstd: Best compression ratio
-                                                                         # - compresslevel: 1-19 (higher=better compression)
+                                                                           # - zstd: Best compression ratio
+                                                                           # - compresslevel: 1-19 (higher=better compression)
 
 # Table partitioning for 7 large tables:
 # catalog_returns, catalog_sales, inventory, store_returns, store_sales, web_returns, web_sales
@@ -238,7 +238,7 @@ export TABLE_USE_PARTITION="true"
 - `TABLE_ACCESS_METHOD`: Default to non-value to be compatible with HashData Cloud and early Greenplum versions. Should be set to `USING ao_column` for Cloudberry or Greenplum. `USING PAX` is available for Cloudberry 2.0 and HashData Lightning.
 - For earlier Greenplum products without `TABLE_ACCESS_METHOD` support, use full options: `appendoptimized=true, orientation=column, compresstype=zlib, compresslevel=5, blocksize=1048576` 
 - Distribution policies are defined in `TPC-DS-Toolkit/03_ddl/distribution.txt`. With products supporting `REPLICATED` policy, 14 tables use `REPLICATED` distribution by default. For early Greenplum products without `REPLICATED` policy support, see `TPC-DS-Toolkit/03_ddl/distribution_original.txt`.
-- Table partition definitions are in `TPC-DS-Toolkit/03_ddl/*.sql.partition`. **Note:** When using table partitioning along with column-oriented tables, if the block size is set to a large value, it might cause high memory consumption and result in out-of-memory errors. In that case, reduce the block size or the number of partitions.
+- Table partition definitions are in `TPC-DS-Toolkit/03_ddl/*.sql.partition`. When using table partitioning along with column-oriented tables, if the block size is set to a large value, it might cause high memory consumption and result in out-of-memory errors. In that case, reduce the block size or the number of partitions.
 
 ### Step Control Options
 ```bash
@@ -266,8 +266,8 @@ There are multiple steps in running the benchmark, controlled by these variables
 |---------------------------|---------|-------------|
 | `RUN_COMPILE_TPCDS`       | `true`  | Compiles `dsdgen` and `dsqgen`. Usually only needs to be done once. |
 | `RUN_GEN_DATA`            | `true`  | Generates flat files for the benchmark in parallel on all segment nodes. Files are stored under the `${PGDATA}/dsbenchmark` directory. |
-| `RUN_INIT`                | `true`  | Sets up GUCs for the database and records segment configurations. Only required if the cluster is reconfigured. |
-| `RUN_DDL`                 | `true`  | Recreates all schemas and tables (including external tables for loading). Set to `false` to keep existing data. |
+| `RUN_INIT`                | `true`  | Sets up GUCs for the database and records segment configurations. Required after cluster reconfiguration. |
+| `RUN_DDL`                 | `true`  | Recreates schemas and tables (including external tables for loading). Set to `false` to keep existing data. |
 | `RUN_LOAD`                | `true`  | Loads data from flat files into tables and computes statistics. |
 | `RUN_SQL`                 | `true`  | Runs the power test of the benchmark. |
 | `RUN_SINGLE_USER_REPORTS` | `true`  | Generate results to the database under the schema `tpcds_reports`. Required for the `RUN_SCORE` step. |
@@ -332,6 +332,14 @@ For optimal performance:
 4. **Enable Vectorization** (for supported systems)
    ```bash
    export ENABLE_VECTORIZATION="on"
+   ```
+
+5. **Optimizer Settings** (for supported systems)
+
+   ```bash
+   # Adjust optimizer settings in 01_gen_data/optimizer.txt
+   # Turn ORCA on/off for each queries by setting in this file
+   # After changing the settings, make sure to run the QGEN to generate the queries with the new settings.
    ```
 
 ## Benchmark Modifications
